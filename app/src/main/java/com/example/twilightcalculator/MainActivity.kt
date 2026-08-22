@@ -10,6 +10,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
 import com.google.android.material.button.MaterialButton
 import java.time.LocalTime
 import java.time.ZoneId
@@ -23,6 +25,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txSun: TextView
     private lateinit var txTwilight: TextView
     private lateinit var txMoonNight: TextView
+    private lateinit var chartAltitude: LineChart
+    private lateinit var chartMoonPhase: BarChart
+    private lateinit var chartDayLength: BarChart
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +39,9 @@ class MainActivity : AppCompatActivity() {
         txSun = findViewById(R.id.txSun)
         txTwilight = findViewById(R.id.txTwilight)
         txMoonNight = findViewById(R.id.txMoonNight)
+        chartAltitude = findViewById(R.id.chartAltitude)
+        chartMoonPhase = findViewById(R.id.chartMoonPhase)
+        chartDayLength = findViewById(R.id.chartDayLength)
 
         val calcButton = findViewById<MaterialButton>(R.id.calcButton)
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
@@ -97,6 +105,11 @@ class MainActivity : AppCompatActivity() {
 
         // --- Луна и астрономическая ночь ---
         txMoonNight.text = formatMoonNight(sky)
+
+        // --- Графики ---
+        Charts.fillAltitude(this, chartAltitude, today, lat, lng, zone)
+        Charts.fillMoonPhase(this, chartMoonPhase, today, 29, zone)
+        Charts.fillDayLength(this, chartDayLength, today, 7, lat, lng, zone)
 
         // Обновляем заголовок.
         dateText.text = getString(R.string.date_now, today.toString())

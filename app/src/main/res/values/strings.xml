@@ -35,4 +35,11 @@
     <string name="moon_always_up">Луна освещает небо всю ночь — тёмной астрономической ночи нет.</string>
     <string name="moon_window">Тёмная ночь: %1$s – %2$s</string>
     <string name="moon_rise_set_none">—</string>
+
+    <!-- Графики -->
+    <string name="section_chart_altitude">Высота Солнца и Луны · сегодня</string>
+    <string name="chart_altitude_legend_sun">Солнце</string>
+    <string name="chart_altitude_legend_moon">Луна</string>
+    <string name="section_chart_moon_phase">Фаза Луны на месяц</string>
+    <string name="section_chart_daylength">Долгота дня на неделю</string>
 </resources>
