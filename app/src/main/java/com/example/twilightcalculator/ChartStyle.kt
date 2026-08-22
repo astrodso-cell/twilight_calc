@@ -24,6 +24,7 @@ object ChartStyle {
         chart.setNoDataText("—")
         chart.setNoDataTextColor(AXIS_TEXT)
         chart.setTouchEnabled(true)
+        chart.setDragEnabled(true)
         chart.setPinchZoom(true)
         // Разрешаем перемещение/зум и по вертикали, и по горизонтали.
         chart.setScaleXEnabled(true)
@@ -68,10 +69,8 @@ object ChartStyle {
         val yl = chart.axisLeft
         yl.textColor = AXIS_TEXT
         yl.gridColor = GRID_COLOR
-        yl.axisMinimum = 0f
-        yl.axisMaximum = 24f
-        // Без фиксированной гранулярности: при увеличении ось сама подбирает
-        // более мелкий шаг времени (вплоть до получаса/часа).
+        // Не фиксируем границы оси Y — иначе вертикальный пан/зум запрещён.
+        // Свободная шкала позволяет двигать график вверх-вниз и приближать по времени.
         yl.setLabelCount(6, true)
         yl.valueFormatter = timeFormatter
 
