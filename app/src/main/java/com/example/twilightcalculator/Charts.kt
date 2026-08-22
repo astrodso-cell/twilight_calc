@@ -36,21 +36,22 @@ object Charts {
         val startColor = ContextCompat.getColor(context, R.color.chart_night_start)
         val endColor = ContextCompat.getColor(context, R.color.chart_night_end)
 
-        // Для каждого календарного дня месяца собираем тёмное время в пределах
-        // его собственных суток [0..24). Ночь, пересекающая полночь (например
-        // 20:37 → 00:34), разбивается на «вечер» (на дате x) и «утро» (на дате x+1),
-        // чтобы данные не «уезжали» на соседний столбик.
+        // Каждый столбец с числом d должен повторять ровно тот же интервал,
+        // что показывается в карточке при выборе даты d: astroNight(d),
+        // от начала первого тёмного окна до конца последнего.
         val startEntries = ArrayList<BarEntry>()
         val endEntries = ArrayList<BarEntry>()
         val labels = ArrayList<Int>()
 
         for (i in 0 until days) {
             val d = monthStart.plusDays(i.toLong())
-            // Календарные сутки d: утро (из ночи d-1→d) + вечер (из ночи d→d+1).
-            val (lo, hi) = darkSegmentOfDay(d, lat, lng, zone)
+            val sky = Sky.astroNight(d, lat, lng, zone)
 
-            val startH = lo?.takeIf { it.isFinite() } ?: 0f
-            val endH = hi?.takeIf { it.isFinite() } ?: 0f
+            val dark = sky.darkWindows
+            val startH = if (sky.hasAstroNight && dark.isNotEmpty())
+                timeToHours(dark.first().start) else 0f
+            val endH = if (sky.hasAstroNight && dark.isNotEmpty())
+                timeToHours(dark.last().end) else 0f
 
             startEntries.add(BarEntry(i.toFloat(), startH))
             endEntries.add(BarEntry(i.toFloat(), endH))
@@ -78,51 +79,6 @@ object Charts {
         chart.xAxis.axisMaximum = days - 0.5f
         chart.groupBars(-0.5f, groupSpace, barSpace)
         chart.invalidate()
-    }
-
-    /**
-     * Тёмное время в календарные сутки [date]: пары (начало, конец) в часах,
-     * только в пределах [0,24). Из ночи [date] берём только вечернюю часть,
-     * из ночи date-1 — только утреннюю, пересекающую полночь.
-     */
-    private fun darkSegmentOfDay(
-        date: LocalDate,
-        lat: Double,
-        lng: Double,
-        zone: ZoneId
-    ): Pair<Float?, Float?> {
-        // Ночь date: вечер date → утро date+1.
-        val sky = Sky.astroNight(date, lat, lng, zone)
-        var lo: Float? = null
-        var hi: Float? = null
-        if (sky.hasAstroNight) {
-            for (w in sky.darkWindows) {
-                val s = timeToHours(w.start)
-                val e = timeToHours(w.end)
-                if (e >= s) {
-                    // Неполночное окно целиком в сутках date.
-                    lo = if (lo == null) s else minOf(lo, s)
-                    hi = if (hi == null) e else maxOf(hi, e)
-                } else {
-                    // Переход полночь: вечерняя часть в date [s..24).
-                    lo = if (lo == null) s else minOf(lo, s)
-                    hi = 24f
-                }
-            }
-        }
-        // Утренняя часть из ночи date-1 (если та перешла полночь).
-        val prev = Sky.astroNight(date.minusDays(1), lat, lng, zone)
-        if (prev.hasAstroNight) {
-            for (w in prev.darkWindows) {
-                val s = timeToHours(w.start)
-                val e = timeToHours(w.end)
-                if (e < s) {
-                    hi = if (hi == null) e else maxOf(hi, e)
-                    lo = 0f
-                }
-            }
-        }
-        return lo to hi
     }
 
     /** Время в часах с долей минуты, напр. 21:30 -> 21.5. */
