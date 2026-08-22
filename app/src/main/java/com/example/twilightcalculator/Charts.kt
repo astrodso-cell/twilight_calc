@@ -35,7 +35,6 @@ object Charts {
     ) {
         val startColor = ContextCompat.getColor(context, R.color.chart_night_start)
         val endColor = ContextCompat.getColor(context, R.color.chart_night_end)
-        val valueText = ContextCompat.getColor(context, R.color.text_primary)
 
         val startEntries = ArrayList<BarEntry>()
         val endEntries = ArrayList<BarEntry>()
@@ -61,17 +60,11 @@ object Charts {
 
         val startSet = BarDataSet(startEntries, context.getString(R.string.chart_dark_start))
         startSet.color = startColor
-        startSet.valueTextColor = valueText
-        startSet.valueTextSize = 9f
-        startSet.setDrawValues(true)
-        startSet.setValueFormatter(timeFormatter)
+        startSet.setDrawValues(false)
 
         val endSet = BarDataSet(endEntries, context.getString(R.string.chart_dark_end))
         endSet.color = endColor
-        endSet.valueTextColor = valueText
-        endSet.valueTextSize = 9f
-        endSet.setDrawValues(true)
-        endSet.setValueFormatter(timeFormatter)
+        endSet.setDrawValues(false)
 
         ChartStyle.styleBarGrouped(chart, labels, timeFormatter)
         chart.data = BarData(startSet, endSet)

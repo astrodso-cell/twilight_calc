@@ -98,8 +98,8 @@ object SunTimes {
     /** Смещение часового пояса на [date] (учитывает переход на летнее время). */
     private fun offsetOn(date: LocalDate, zone: ZoneId): Int {
         // Полдень даты — безопасная точка вне «переходной» паузы (вторая половина ночи).
-        val instant = LocalDateTime.of(date, LocalTime.NOON).atZone(zone)
-        return zone.rules.getOffset(instant).totalSeconds
+        val ldt = LocalDateTime.of(date, LocalTime.NOON)
+        return zone.rules.getOffset(ldt).totalSeconds
     }
 
     /** Все времена для одной даты. */
