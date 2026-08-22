@@ -215,15 +215,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun formatMoonNight(sky: Sky.NightInfo): String {
         val phase = sky.moonPhase
+        // «Тёмная ночь» — та же, что на графике: окна, когда Луна за горизонтом.
+        val (darkStart, darkEnd) = darkNightInterval(sky)
         return getString(
             R.string.moon_head_fmt,
             phase.name,
             phase.illuminationPercent,
             listOfTimes(sky.moonRises), listOfTimes(sky.moonSets),
-            fmtTimeOrDash(sky.astroNightStart),
-            fmtTimeOrDash(sky.astroNightEnd),
+            fmtTimeOrDash(darkStart),
+            fmtTimeOrDash(darkEnd),
             nightSummary(sky)
         )
+    }
+
+    /**
+     * Интервал «истинной тёмной ночи»: от начала первого тёмного окна до конца
+     * последнего (совпадает с графиком). Тёмной ночи нет — null/null.
+     */
+    private fun darkNightInterval(sky: Sky.NightInfo): Pair<LocalTime?, LocalTime?> {
+        if (!sky.hasAstroNight || sky.darkWindows.isEmpty()) return null to null
+        return sky.darkWindows.first().start to sky.darkWindows.last().end
     }
 
     private fun fmtTimeOrDash(time: LocalTime?): String =
