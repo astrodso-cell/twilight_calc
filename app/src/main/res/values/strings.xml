@@ -16,6 +16,7 @@
 
     <string name="action_calculate">Рассчитать</string>
     <string name="action_location">Моё место</string>
+    <string name="action_date">📅 Дата</string>
     <string name="default_lat">55.7558</string>
     <string name="default_lng">37.6173</string>
 
@@ -27,7 +28,10 @@
     <string name="sun_head">Восход: %1$s\nЗакат: %2$s\nДолгота дня: %3$s</string>
     <string name="sun_head_short">Долгота дня: %1$s\n(восход/закат не определяется)</string>
 
-    <string name="tw_head">Гражданские (Солнце 0..−6°)\n&#160;&#160;рассвет: %1$s · закат: %2$s\nНавигационные (−6..−12°)\n&#160;&#160;рассвет: %3$s · закат: %4$s\nАстрономические (−12..−18°)\n&#160;&#160;рассвет: %5$s · закат: %6$s</string>
+    <string name="tw_civil_label">Гражданские</string>
+    <string name="tw_nautical_label">Навигационные</string>
+    <string name="tw_astro_label">Астрономические</string>
+    <string name="tw_interval">%1$s · %2$s</string>
 
     <string name="moon_head_fmt">Фаза: %1$s (освещено %2$d%%)\nВосход Луны: %3$s\nЗаход Луны: %4$s\n\nАстрономическая ночь: %5$s – %6$s\n%7$s</string>
     <string name="moon_never">Астрономическая ночь сегодня не наступает (полярный день/ночь).</string>
@@ -40,6 +44,4 @@
     <string name="section_chart_altitude">Высота Солнца и Луны · сегодня</string>
     <string name="chart_altitude_legend_sun">Солнце</string>
     <string name="chart_altitude_legend_moon">Луна</string>
-    <string name="section_chart_moon_phase">Фаза Луны на месяц</string>
-    <string name="section_chart_daylength">Долгота дня на неделю</string>
 </resources>

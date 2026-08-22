@@ -1,19 +1,18 @@
 package com.example.twilightcalculator
 
 import android.graphics.Color
-import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.BarLineChartBase
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 
 /**
- * Единая тёмная стилизация графиков MPAndroidChart в ночной теме.
+ * Единая светлая стилизация графиков MPAndroidChart в теме «сумерки».
  */
 object ChartStyle {
 
-    private const val GRID_COLOR = 0xFF3A4A7A.toInt()
-    private const val AXIS_TEXT = 0xFF9AA7C7.toInt()
+    private const val GRID_COLOR = 0x223B46CF.toInt()
+    private const val AXIS_TEXT = 0xFF5A66D6.toInt()
 
     /** Стандартные настройки для любой линейной/баровой диаграммы. */
     private fun base(chart: BarLineChartBase<*>) {
@@ -49,24 +48,6 @@ object ChartStyle {
         yl.textColor = AXIS_TEXT
         yl.gridColor = GRID_COLOR
         yl.granularity = 6f
-
-        chart.axisRight.isEnabled = false
-    }
-
-    fun styleBar(chart: BarChart) {
-        base(chart)
-        chart.legend.isEnabled = false
-
-        val x = chart.xAxis
-        x.position = XAxis.XAxisPosition.BOTTOM
-        x.textColor = AXIS_TEXT
-        x.gridColor = GRID_COLOR
-        x.setDrawGridLines(false)
-
-        val yl = chart.axisLeft
-        yl.textColor = AXIS_TEXT
-        yl.gridColor = GRID_COLOR
-        yl.axisMinimum = 0f
 
         chart.axisRight.isEnabled = false
     }

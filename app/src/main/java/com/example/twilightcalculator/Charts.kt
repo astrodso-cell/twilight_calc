@@ -2,12 +2,8 @@ package com.example.twilightcalculator
 
 import android.content.Context
 import androidx.core.content.ContextCompat
-import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.LimitLine
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -16,7 +12,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /**
- * Заполняет три графика данными астрономических расчётов.
+ * Заполняет график высоты Солнца и Луны астрономическими расчётами.
  */
 object Charts {
 
@@ -63,11 +59,15 @@ object Charts {
         ChartStyle.styleLine(chart)
         chart.data = LineData(sun, moon)
 
-        // Уровни сумерек и ночи.
-        addLimit(chart, "0°", 0f, 0xFF9AA7C7.toInt())
-        addLimit(chart, "−6°", -6f, 0xFF7DD3FC.toInt())
-        addLimit(chart, "−12°", -12f, 0xFF7DD3FC.toInt())
-        addLimit(chart, "−18°", -18f, 0xFFC4B5FD.toInt())
+        // Уровни сумерек и ночи (цвета под светлую тему).
+        val axisColor = ContextCompat.getColor(context, R.color.text_secondary)
+        val civilColor = ContextCompat.getColor(context, R.color.tw_civil)
+        val nautColor = ContextCompat.getColor(context, R.color.tw_nautical)
+        val astroColor = ContextCompat.getColor(context, R.color.tw_astro)
+        addLimit(chart, "0°", 0f, axisColor)
+        addLimit(chart, "−6°", -6f, civilColor)
+        addLimit(chart, "−12°", -12f, nautColor)
+        addLimit(chart, "−18°", -18f, astroColor)
 
         chart.invalidate()
     }
@@ -81,67 +81,5 @@ object Charts {
         ll.textSize = 10f
         ll.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
         chart.axisLeft.addLimitLine(ll)
-    }
-
-    /** Заполняет график фазы Луны на [days] дней с подсветкой текущего. */
-    fun fillMoonPhase(
-        context: Context,
-        chart: BarChart,
-        startDate: LocalDate,
-        days: Int,
-        zone: ZoneId
-    ) {
-        val barColor = ContextCompat.getColor(context, R.color.chart_bar)
-        val currentColor = ContextCompat.getColor(context, R.color.chart_bar_current)
-        val entries = ArrayList<BarEntry>()
-        val colors = ArrayList<Int>()
-        for (i in 0 until days) {
-            val d = startDate.plusDays(i.toLong())
-            val illum = Moon.phase(d, zone).illuminationPercent
-            entries.add(BarEntry(i.toFloat(), illum.toFloat()))
-            colors.add(if (i == 0) currentColor else barColor)
-        }
-
-        val set = BarDataSet(entries, "")
-        set.color = barColor
-        set.setColors(colors)
-        set.setDrawValues(false)
-
-        ChartStyle.styleBar(chart)
-        chart.data = BarData(set)
-        chart.data.barWidth = 0.8f
-        chart.invalidate()
-    }
-
-    /** Заполняет график долготы дня на [days] дней. */
-    fun fillDayLength(
-        context: Context,
-        chart: BarChart,
-        startDate: LocalDate,
-        days: Int,
-        lat: Double,
-        lng: Double,
-        zone: ZoneId
-    ) {
-        val barColor = ContextCompat.getColor(context, R.color.chart_bar)
-        val currentColor = ContextCompat.getColor(context, R.color.chart_bar_current)
-        val entries = ArrayList<BarEntry>()
-        val colors = ArrayList<Int>()
-        for (i in 0 until days) {
-            val d = startDate.plusDays(i.toLong())
-            val hours = SunTimes.dailyTimes(d, lat, lng, zone).daylightHours() ?: 0.0
-            entries.add(BarEntry(i.toFloat(), hours.toFloat()))
-            colors.add(if (i == 0) currentColor else barColor)
-        }
-
-        val set = BarDataSet(entries, "")
-        set.color = barColor
-        set.setColors(colors)
-        set.setDrawValues(false)
-
-        ChartStyle.styleBar(chart)
-        chart.data = BarData(set)
-        chart.data.barWidth = 0.8f
-        chart.invalidate()
     }
 }

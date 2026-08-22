@@ -1,6 +1,7 @@
 package com.example.twilightcalculator
 
 import android.Manifest
+import android.app.DatePickerDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
@@ -10,11 +11,12 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.google.android.material.button.MaterialButton
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Calendar
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -23,11 +25,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var latInput: EditText
     private lateinit var lngInput: EditText
     private lateinit var txSun: TextView
-    private lateinit var txTwilight: TextView
+    private lateinit var txCivil: TextView
+    private lateinit var txNautical: TextView
+    private lateinit var txAstro: TextView
     private lateinit var txMoonNight: TextView
     private lateinit var chartAltitude: LineChart
-    private lateinit var chartMoonPhase: BarChart
-    private lateinit var chartDayLength: BarChart
+
+    /** Выбранная для расчёта дата. */
+    private var selectedDate: LocalDate = LocalDate.now()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,22 +42,42 @@ class MainActivity : AppCompatActivity() {
         latInput = findViewById(R.id.latInput)
         lngInput = findViewById(R.id.lngInput)
         txSun = findViewById(R.id.txSun)
-        txTwilight = findViewById(R.id.txTwilight)
+        txCivil = findViewById(R.id.txCivil)
+        txNautical = findViewById(R.id.txNautical)
+        txAstro = findViewById(R.id.txAstro)
         txMoonNight = findViewById(R.id.txMoonNight)
         chartAltitude = findViewById(R.id.chartAltitude)
-        chartMoonPhase = findViewById(R.id.chartMoonPhase)
-        chartDayLength = findViewById(R.id.chartDayLength)
 
         val calcButton = findViewById<MaterialButton>(R.id.calcButton)
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
+        val dateButton = findViewById<MaterialButton>(R.id.dateButton)
 
-        dateText.text = getString(R.string.date_now, java.time.LocalDate.now().toString())
+        dateText.text = getString(R.string.date_now, date(selectedDate))
         latInput.setText(getString(R.string.default_lat))
         lngInput.setText(getString(R.string.default_lng))
 
         calcButton.setOnClickListener { calculate() }
         locationButton.setOnClickListener { useCurrentLocation() }
+        dateButton.setOnClickListener { showDatePicker() }
     }
+
+    private fun showDatePicker() {
+        val c = Calendar.getInstance().apply {
+            set(selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth)
+        }
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                selectedDate = LocalDate.of(year, month + 1, day)
+                dateText.text = getString(R.string.date_now, date(selectedDate))
+                calculate()
+            },
+            c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    /** Человекочитаемая дата в формате ISO, например 2026-08-26. */
+    private fun date(d: LocalDate): String = d.toString()
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -77,10 +102,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val today = java.time.LocalDate.now()
         val zone = ZoneId.systemDefault()
-        val times = SunTimes.dailyTimes(today, lat, lng, zone)
-        val sky = Sky.astroNight(today, lat, lng, zone)
+        val times = SunTimes.dailyTimes(selectedDate, lat, lng, zone)
+        val sky = Sky.astroNight(selectedDate, lat, lng, zone)
 
         // --- Солнце ---
         val hours = times.daylightHours()
@@ -95,25 +119,23 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.sun_head_short, "—")
         }
 
-        // --- Сумерки ---
-        txTwilight.text = getString(
-            R.string.tw_head,
-            SunTimes.fmt(times.civilDawn), SunTimes.fmt(times.civilDusk),
-            SunTimes.fmt(times.nauticalDawn), SunTimes.fmt(times.nauticalDusk),
-            SunTimes.fmt(times.astroDawn), SunTimes.fmt(times.astroDusk)
-        )
+        // --- Сумерки (рассвет · закат) ---
+        txCivil.text = twilightInterval(times.civilDawn, times.civilDusk)
+        txNautical.text = twilightInterval(times.nauticalDawn, times.nauticalDusk)
+        txAstro.text = twilightInterval(times.astroDawn, times.astroDusk)
 
         // --- Луна и астрономическая ночь ---
         txMoonNight.text = formatMoonNight(sky)
 
-        // --- Графики ---
-        Charts.fillAltitude(this, chartAltitude, today, lat, lng, zone)
-        Charts.fillMoonPhase(this, chartMoonPhase, today, 29, zone)
-        Charts.fillDayLength(this, chartDayLength, today, 7, lat, lng, zone)
+        // --- График высоты ---
+        Charts.fillAltitude(this, chartAltitude, selectedDate, lat, lng, zone)
 
         // Обновляем заголовок.
-        dateText.text = getString(R.string.date_now, today.toString())
+        dateText.text = getString(R.string.date_now, date(selectedDate))
     }
+
+    private fun twilightInterval(dawn: LocalTime?, dusk: LocalTime?): String =
+        getString(R.string.tw_interval, SunTimes.fmt(dawn), SunTimes.fmt(dusk))
 
     private fun formatMoonNight(sky: Sky.NightInfo): String {
         val phase = sky.moonPhase

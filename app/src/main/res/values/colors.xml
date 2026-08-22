@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Цветовая схема «ночное небо» (Material 3 Dark) -->
-    <color name="night_background">#0B0F2A</color>
-    <color name="night_background_top">#0B0F2A</color>
-    <color name="night_background_bottom">#151B3B</color>
-    <color name="night_surface">#1A2146</color>
-    <color name="night_surface_variant">#232B56</color>
-    <color name="night_primary">#E8F4FF</color>
-    <color name="night_accent">#7DD3FC</color>
-    <color name="night_accent_strong">#38BDF8</color>
-    <color name="night_outline">#3A4A7A</color>
+    <!-- Цветовая схема «сумеречное небо» (светлая) -->
+    <color name="night_background">#E6EBFF</color>
+    <color name="night_background_top">#F1F4FF</color>
+    <color name="night_background_bottom">#D3DCFF</color>
+    <color name="night_surface">#FFFFFF</color>
+    <color name="night_surface_variant">#EEF2FF</color>
+    <color name="night_primary">#2E3A8C</color>
+    <color name="night_accent">#4F5BE5</color>
+    <color name="night_accent_strong">#3B46CF</color>
+    <color name="night_outline">#C9D2F5</color>
 
-    <color name="text_primary">#E8F4FF</color>
-    <color name="text_secondary">#9AA7C7</color>
+    <color name="text_primary">#20275C</color>
+    <color name="text_secondary">#66729E</color>
+
+    <!-- Цвета типов сумерек -->
+    <color name="tw_civil">#16A34A</color>
+    <color name="tw_nautical">#2563EB</color>
+    <color name="tw_astro">#7C3AED</color>
 
     <!-- Серии для графиков -->
-    <color name="chart_sun">#FDBA74</color>
-    <color name="chart_moon">#C4B5FD</color>
+    <color name="chart_sun">#F59E0B</color>
+    <color name="chart_moon">#8B5CF6</color>
     <color name="chart_bar">#7DD3FC</color>
     <color name="chart_bar_current">#FACC15</color>
 
