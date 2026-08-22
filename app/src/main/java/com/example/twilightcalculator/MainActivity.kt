@@ -45,6 +45,23 @@ class MainActivity : AppCompatActivity() {
     /** Первое число месяца, показываемого в таблице (независимо от [selectedDate]). */
     private var chartMonth: LocalDate = LocalDate.now().withDayOfMonth(1)
 
+    // --- Сохранение последнего местоположения ---
+    private val prefs by lazy {
+        getSharedPreferences("twilight_prefs", android.content.Context.MODE_PRIVATE)
+    }
+    private val savedLat: String? get() = prefs.getString(KEY_LAT, null)
+    private val savedLng: String? get() = prefs.getString(KEY_LNG, null)
+
+    /** Сохраняет текущие координаты как «последние использованные». */
+    private fun saveLocation() {
+        val lat = latInput.text.toString().trim()
+        val lng = lngInput.text.toString().trim()
+        prefs.edit()
+            .putString(KEY_LAT, lat)
+            .putString(KEY_LNG, lng)
+            .apply()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -67,8 +84,9 @@ class MainActivity : AppCompatActivity() {
         val dateButton = findViewById<MaterialButton>(R.id.dateButton)
 
         dateText.text = getString(R.string.date_now, date(selectedDate))
-        latInput.setText(getString(R.string.default_lat))
-        lngInput.setText(getString(R.string.default_lng))
+        // Восстанавливаем последние координаты, иначе — значения по умолчанию.
+        latInput.setText(savedLat ?: getString(R.string.default_lat))
+        lngInput.setText(savedLng ?: getString(R.string.default_lng))
 
         calcButton.setOnClickListener { calculate() }
         locationButton.setOnClickListener { useCurrentLocation() }
@@ -128,6 +146,9 @@ class MainActivity : AppCompatActivity() {
             txSun.text = getString(R.string.error_coords)
             return
         }
+
+        // Запоминаем последние использованные координаты.
+        saveLocation()
 
         val zone = ZoneId.systemDefault()
         val times = SunTimes.dailyTimes(selectedDate, lat, lng, zone)
@@ -410,5 +431,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_LOCATION = 100
+        private const val KEY_LAT = "last_lat"
+        private const val KEY_LNG = "last_lng"
     }
 }
