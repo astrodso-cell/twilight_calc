@@ -39,8 +39,8 @@ class MainActivity : AppCompatActivity() {
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
 
         dateText.text = getString(R.string.date_now, java.time.LocalDate.now().toString())
-        latInput.setText("55.7558")
-        lngInput.setText("37.6173")
+        latInput.setText(getString(R.string.default_lat))
+        lngInput.setText(getString(R.string.default_lng))
 
         calcButton.setOnClickListener { calculate() }
         locationButton.setOnClickListener { useCurrentLocation() }
