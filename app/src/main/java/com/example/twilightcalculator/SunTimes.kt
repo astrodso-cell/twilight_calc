@@ -1,6 +1,7 @@
 package com.example.twilightcalculator
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -78,18 +79,27 @@ object SunTimes {
         zone: ZoneId
     ): LocalTime? {
         val doy = date.dayOfYear.toDouble()
+        // Смещение пояса на выбранную дату (учитывает переход на летнее время).
+        val offsetSeconds = offsetOn(date, zone)
         // В полярных районах событие может не наступать в этот день — перебираем
         // соседние дни (обиходный допуск для практических целей), начиная с самого
         // дня и постепенно расширяясь наружу.
         for (delta in 0..40) {
-            calcDoy(doy - delta, latitude, longitude, event, zenith, zone)
+            calcDoy(doy - delta, latitude, longitude, event, zenith, zone, offsetSeconds)
                 ?.let { return it }
             if (delta > 0) {
-                calcDoy(doy + delta, latitude, longitude, event, zenith, zone)
+                calcDoy(doy + delta, latitude, longitude, event, zenith, zone, offsetSeconds)
                     ?.let { return it }
             }
         }
         return null
+    }
+
+    /** Смещение часового пояса на [date] (учитывает переход на летнее время). */
+    private fun offsetOn(date: LocalDate, zone: ZoneId): Int {
+        // Полдень даты — безопасная точка вне «переходной» паузы (вторая половина ночи).
+        val instant = LocalDateTime.of(date, LocalTime.NOON).atZone(zone)
+        return zone.rules.getOffset(instant).totalSeconds
     }
 
     /** Все времена для одной даты. */
@@ -128,7 +138,8 @@ object SunTimes {
         longitude: Double,
         event: Event,
         zenith: Double,
-        zone: ZoneId
+        zone: ZoneId,
+        offsetSeconds: Int
     ): LocalTime? {
         val lng = ((longitude + 180.0).rem(360.0)) - 180.0
         val lngHour = lng / 15.0
@@ -165,8 +176,7 @@ object SunTimes {
         var minutes = (utHours * 60.0).roundToLong() % (24 * 60)
         if (minutes < 0) minutes += 24 * 60
 
-        // Переводим UT в локальную зону устройства.
-        val offsetSeconds = zone.rules.getOffset(java.time.Instant.EPOCH).totalSeconds
+        // Переводим UT в локальную зону устройства (сдвиг пояса на дату расчёта).
         minutes = (minutes + offsetSeconds / 60) % (24 * 60)
         if (minutes < 0) minutes += 24 * 60
 
