@@ -29,6 +29,9 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Rename APK (drop variant suffix)
+        run: mv app/build/outputs/apk/debug/twilight-calc-debug.apk app/build/outputs/apk/debug/twilight-calc.apk
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
