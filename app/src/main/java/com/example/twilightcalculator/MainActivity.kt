@@ -111,6 +111,9 @@ class MainActivity : AppCompatActivity() {
             this,
             { _, year, month, day ->
                 selectedDate = LocalDate.of(year, month + 1, day)
+                // Показываем на графике месяц выбранной даты — иначе числа на
+                // графике (независимый месяц) будут съезжать относительно карточки.
+                chartMonth = selectedDate.withDayOfMonth(1)
                 dateText.text = getString(R.string.date_now, date(selectedDate))
                 calculate()
             },
