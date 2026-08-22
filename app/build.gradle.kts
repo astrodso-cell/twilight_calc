@@ -44,6 +44,9 @@ android {
     }
 }
 
+// Читаемое имя для файлов APK вместо некрасивого «app-…».
+archivesBaseName = "twilight-calc"
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 

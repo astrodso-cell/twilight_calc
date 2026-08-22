@@ -323,13 +323,45 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
+                <!-- Заголовок графика + переключение месяца -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/section_chart_dark_night"
-                    android:textColor="@color/night_accent"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prevMonth"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="36dp"
+                        android:text="‹"
+                        android:textSize="18sp"
+                        app:cornerRadius="12dp" />
+
+                    <TextView
+                        android:id="@+id/chartMonthTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="—"
+                        android:textColor="@color/night_accent"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="Июнь 2026" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nextMonth"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="36dp"
+                        android:text="›"
+                        android:textSize="18sp"
+                        app:cornerRadius="12dp" />
+                </LinearLayout>
 
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/chartDarkNight"

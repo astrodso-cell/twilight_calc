@@ -30,9 +30,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txAstro: TextView
     private lateinit var txMoonNight: TextView
     private lateinit var chartDarkNight: BarChart
+    private lateinit var chartMonthTitle: TextView
+    private lateinit var prevMonth: MaterialButton
+    private lateinit var nextMonth: MaterialButton
 
     /** Выбранная для расчёта дата. */
     private var selectedDate: LocalDate = LocalDate.now()
+
+    /** Первое число месяца, показываемого на графике (независимо от [selectedDate]). */
+    private var chartMonth: LocalDate = LocalDate.now().withDayOfMonth(1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +53,9 @@ class MainActivity : AppCompatActivity() {
         txAstro = findViewById(R.id.txAstro)
         txMoonNight = findViewById(R.id.txMoonNight)
         chartDarkNight = findViewById(R.id.chartDarkNight)
+        chartMonthTitle = findViewById(R.id.chartMonthTitle)
+        prevMonth = findViewById(R.id.prevMonth)
+        nextMonth = findViewById(R.id.nextMonth)
 
         val calcButton = findViewById<MaterialButton>(R.id.calcButton)
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
@@ -59,6 +68,16 @@ class MainActivity : AppCompatActivity() {
         calcButton.setOnClickListener { calculate() }
         locationButton.setOnClickListener { useCurrentLocation() }
         dateButton.setOnClickListener { showDatePicker() }
+
+        prevMonth.setOnClickListener {
+            chartMonth = chartMonth.minusMonths(1)
+            renderDarkNightChart()
+        }
+        nextMonth.setOnClickListener {
+            chartMonth = chartMonth.plusMonths(1)
+            renderDarkNightChart()
+        }
+        renderDarkNightChart()
     }
 
     private fun showDatePicker() {
@@ -128,12 +147,7 @@ class MainActivity : AppCompatActivity() {
         txMoonNight.text = formatMoonNight(sky)
 
         // --- График тёмной ночи на месяц ---
-        val monthStart = selectedDate.withDayOfMonth(1)
-        val daysInMonth = selectedDate.lengthOfMonth()
-        Charts.fillDarkNight(
-            this, chartDarkNight,
-            monthStart, daysInMonth, lat, lng, zone
-        )
+        renderDarkNightChart()
 
         // Обновляем заголовок.
         dateText.text = getString(R.string.date_now, date(selectedDate))
@@ -141,6 +155,40 @@ class MainActivity : AppCompatActivity() {
 
     private fun twilightInterval(dawn: LocalTime?, dusk: LocalTime?): String =
         getString(R.string.tw_interval, SunTimes.fmt(dawn), SunTimes.fmt(dusk))
+
+    /** Рисует график тёмной ночи для месяца [chartMonth] и обновляет заголовок. */
+    private fun renderDarkNightChart() {
+        val lat = latInput.text.toString().trim().toDoubleOrNull()
+        val lng = lngInput.text.toString().trim().toDoubleOrNull()
+        if (lat == null || lng == null) return
+
+        val zone = ZoneId.systemDefault()
+        val daysInMonth = chartMonth.lengthOfMonth()
+        chartMonthTitle.text = getString(
+            R.string.chart_month_title,
+            russianMonth(chartMonth), chartMonth.year
+        )
+        Charts.fillDarkNight(
+            this, chartDarkNight,
+            chartMonth, daysInMonth, lat, lng, zone
+        )
+    }
+
+    /** Русское название месяца по-настоящему (именительный падеж). */
+    private fun russianMonth(d: LocalDate): String = when (d.monthValue) {
+        1 -> "Январь"
+        2 -> "Февраль"
+        3 -> "Март"
+        4 -> "Апрель"
+        5 -> "Май"
+        6 -> "Июнь"
+        7 -> "Июль"
+        8 -> "Август"
+        9 -> "Сентябрь"
+        10 -> "Октябрь"
+        11 -> "Ноябрь"
+        else -> "Декабрь"
+    }
 
     private fun formatMoonNight(sky: Sky.NightInfo): String {
         val phase = sky.moonPhase

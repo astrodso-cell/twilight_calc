@@ -67,7 +67,9 @@ object ChartStyle {
         yl.gridColor = GRID_COLOR
         yl.axisMinimum = 0f
         yl.axisMaximum = 24f
-        yl.granularity = 3f
+        // Без фиксированной гранулярности: при увеличении ось сама подбирает
+        // более мелкий шаг времени (вплоть до получаса/часа).
+        yl.setLabelCount(6, true)
         yl.valueFormatter = timeFormatter
 
         chart.axisRight.isEnabled = false
