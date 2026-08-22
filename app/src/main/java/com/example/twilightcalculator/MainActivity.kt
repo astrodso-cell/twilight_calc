@@ -5,8 +5,14 @@ import android.app.DatePickerDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var chartMonthTitle: TextView
     private lateinit var prevMonth: MaterialButton
     private lateinit var nextMonth: MaterialButton
-    private lateinit var tableBody: android.widget.LinearLayout
+    private lateinit var tableBody: LinearLayout
 
     /** Выбранная для расчёта дата. */
     private var selectedDate: LocalDate = LocalDate.now()
@@ -177,25 +183,91 @@ class MainActivity : AppCompatActivity() {
         val dateColor = ContextCompat.getColor(this, R.color.text_primary)
         val startColor = ContextCompat.getColor(this, R.color.tw_nautical)
         val endColor = ContextCompat.getColor(this, R.color.tw_civil)
+        val fillColor = Color.parseColor("#5540468C") // полупрозрачный тёмный для полоски
 
+        // Длительность тёмной ночи по каждому дню, чтобы найти максимум за месяц.
+        val durations = ArrayList<Int>()
+        val skies = ArrayList<List<Sky.TimeWindow>>()
         for (i in 0 until daysInMonth) {
             val d = chartMonth.plusDays(i.toLong())
             val sky = Sky.astroNight(d, lat, lng, zone)
             val dark = if (sky.hasAstroNight) sky.darkWindows else emptyList()
+            skies.add(dark)
+            durations.add(dark.sumOf { windowMinutes(it) })
+        }
+        val maxDur = durations.maxOrNull() ?: 0
+
+        for (i in 0 until daysInMonth) {
+            val d = chartMonth.plusDays(i.toLong())
+            val dark = skies[i]
 
             val startTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.first().start) else "—"
             val endTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.last().end) else "—"
 
-            val row = android.widget.LinearLayout(this).apply {
-                orientation = android.widget.LinearLayout.HORIZONTAL
-                setPadding(0, dp(6), 0, dp(6))
-            }
-            row.addView(column(d.dayOfMonth.toString(), 9, 14f, false, dateColor))
-            row.addView(column(startTxt, 9, 14f, true, startColor))
-            row.addView(column(endTxt, 9, 14f, true, endColor))
+            // Доля заполнения строки: от 0 (нет темноты) до 1 (самая длинная ночь).
+            val frac = if (maxDur > 0) durations[i].toFloat() / maxDur.toFloat() else 0f
 
-            tableBody.addView(row)
+            tableBody.addView(darkRow(d.dayOfMonth.toString(), startTxt, endTxt,
+                frac, dateColor, startColor, endColor, fillColor))
         }
+    }
+
+    /**
+     * Строка таблицы: залитая «полоска темноты» слева (доля [frac])+ текст поверх.
+     */
+    private fun darkRow(
+        dateTxt: String,
+        startTxt: String,
+        endTxt: String,
+        frac: Float,
+        dateColor: Int,
+        startColor: Int,
+        endColor: Int,
+        fillColor: Int
+    ): View {
+        val frame = FrameLayout(this)
+        frame.layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        frame.setPadding(0, dp(2), 0, dp(2))
+        frame.minimumHeight = dp(30)
+
+        // Полоска-фон: левая доля залита, остальное прозрачно.
+        val bar = LinearLayout(this)
+        bar.orientation = LinearLayout.HORIZONTAL
+        bar.layoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        val filled = View(this).apply { setBackgroundColor(fillColor) }
+        val empty = View(this).apply { setBackgroundColor(Color.TRANSPARENT) }
+        val fracPts = (frac * 1000).toInt().coerceIn(0, 1000)
+        bar.addView(filled, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, fracPts.toFloat()))
+        bar.addView(empty, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, (1000 - fracPts).toFloat()))
+        frame.addView(bar)
+
+        // Кнопки текста поверх, центрированные по вертикали.
+        val textRow = LinearLayout(this)
+        textRow.orientation = LinearLayout.HORIZONTAL
+        textRow.gravity = Gravity.CENTER_VERTICAL
+        textRow.layoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        textRow.addView(column(dateTxt, 9, 14f, false, dateColor))
+        textRow.addView(column(startTxt, 9, 14f, true, startColor))
+        textRow.addView(column(endTxt, 9, 14f, true, endColor))
+        frame.addView(textRow)
+
+        return frame
+    }
+
+    /** Продолжительность тёмного окна в минутах (учитывает переход через полночь). */
+    private fun windowMinutes(w: Sky.TimeWindow): Int {
+        val start = w.start.hour * 60 + w.start.minute
+        val end = w.end.hour * 60 + w.end.minute
+        return if (end >= start) end - start else (end + 24 * 60) - start
     }
 
     /** Создаёт TextView-колонку строки таблицы. */
@@ -210,10 +282,10 @@ class MainActivity : AppCompatActivity() {
         tv.text = text
         tv.setTextSize(textSize)
         tv.setTextColor(color)
-        tv.layoutParams = android.widget.LinearLayout.LayoutParams(
-            0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, weight.toFloat()
+        tv.layoutParams = LinearLayout.LayoutParams(
+            0, ViewGroup.LayoutParams.WRAP_CONTENT, weight.toFloat()
         )
-        if (alignEnd) tv.gravity = android.view.Gravity.END
+        if (alignEnd) tv.gravity = Gravity.END
         return tv
     }
 
@@ -309,6 +381,8 @@ class MainActivity : AppCompatActivity() {
                 String.format(Locale.US, "%.4f", loc.latitude),
                 String.format(Locale.US, "%.4f", loc.longitude)
             )
+            // Пересчитываем результаты под новые координаты.
+            calculate()
         } else {
             dateText.text = getString(R.string.location_not_found)
         }
