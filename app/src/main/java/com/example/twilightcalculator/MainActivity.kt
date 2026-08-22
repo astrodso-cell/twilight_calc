@@ -244,22 +244,11 @@ class MainActivity : AppCompatActivity() {
     private fun nightSummary(sky: Sky.NightInfo): String {
         if (!sky.hasAstroNight) return getString(R.string.moon_never)
         if (sky.darkWindows.isEmpty()) return getString(R.string.moon_always_up)
-        if (sky.darkWindows.size == 1 &&
-            sky.darkWindows[0].start == sky.astroNightStart &&
-            sky.darkWindows[0].end == sky.astroNightEnd
-        ) {
-            return getString(R.string.moon_none)
-        }
-        val sb = StringBuilder()
-        for (w in sky.darkWindows) {
-            if (sb.isNotEmpty()) sb.append('\n')
-            sb.append(getString(
-                R.string.moon_window,
-                fmtTime(w.start),
-                fmtTime(w.end)
-            ))
-        }
-        return sb.toString()
+        // Одним непрерывным интервалом: от начала первого тёмного окна до конца
+        // последнего (совпадает с заголовком и графиком).
+        return getString(R.string.moon_window,
+            fmtTime(sky.darkWindows.first().start),
+            fmtTime(sky.darkWindows.last().end))
     }
 
     private fun listOfTimes(times: List<LocalTime>): String =

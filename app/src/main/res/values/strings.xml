@@ -35,7 +35,6 @@
 
     <string name="moon_head_fmt">Фаза: %1$s (освещено %2$d%%)\nВосход Луны: %3$s\nЗаход Луны: %4$s\n\nТёмная ночь (без Луны): %5$s – %6$s\n%7$s</string>
     <string name="moon_never">Астрономическая ночь сегодня не наступает (полярный день/ночь).</string>
-    <string name="moon_none">Луна загоризонтна всю ночь.</string>
     <string name="moon_always_up">Луна освещает небо всю ночь — тёмной ночи без Луны нет.</string>
     <string name="moon_window">Тёмная ночь: %1$s – %2$s</string>
     <string name="moon_rise_set_none">—</string>
