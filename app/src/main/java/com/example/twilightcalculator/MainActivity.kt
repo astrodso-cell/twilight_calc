@@ -5,13 +5,13 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.time.LocalDate
+import com.google.android.material.button.MaterialButton
+import java.time.LocalTime
 import java.time.ZoneId
 import java.util.Locale
 
@@ -20,7 +20,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dateText: TextView
     private lateinit var latInput: EditText
     private lateinit var lngInput: EditText
-    private lateinit var resultText: TextView
+    private lateinit var txSun: TextView
+    private lateinit var txTwilight: TextView
+    private lateinit var txMoonNight: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,13 +31,14 @@ class MainActivity : AppCompatActivity() {
         dateText = findViewById(R.id.dateText)
         latInput = findViewById(R.id.latInput)
         lngInput = findViewById(R.id.lngInput)
-        resultText = findViewById(R.id.resultText)
+        txSun = findViewById(R.id.txSun)
+        txTwilight = findViewById(R.id.txTwilight)
+        txMoonNight = findViewById(R.id.txMoonNight)
 
-        val calcButton = findViewById<Button>(R.id.calcButton)
-        val locationButton = findViewById<Button>(R.id.locationButton)
+        val calcButton = findViewById<MaterialButton>(R.id.calcButton)
+        val locationButton = findViewById<MaterialButton>(R.id.locationButton)
 
-        // Значения по умолчанию: Москва.
-        dateText.text = getString(R.string.date_now, LocalDate.now().toString())
+        dateText.text = getString(R.string.date_now, java.time.LocalDate.now().toString())
         latInput.setText("55.7558")
         lngInput.setText("37.6173")
 
@@ -53,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 fillFromKnownLocation()
             } else {
-                resultText.text = getString(R.string.location_denied)
+                dateText.text = getString(R.string.location_denied)
             }
         }
     }
@@ -62,37 +65,90 @@ class MainActivity : AppCompatActivity() {
         val lat = latInput.text.toString().trim().toDoubleOrNull()
         val lng = lngInput.text.toString().trim().toDoubleOrNull()
         if (lat == null || lng == null || lat !in -90.0..90.0 || lng !in -180.0..180.0) {
-            resultText.text = getString(R.string.error_coords)
+            txSun.text = getString(R.string.error_coords)
             return
         }
 
-        val today = LocalDate.now()
-        val times = SunTimes.dailyTimes(today, lat, lng, ZoneId.systemDefault())
+        val today = java.time.LocalDate.now()
+        val zone = ZoneId.systemDefault()
+        val times = SunTimes.dailyTimes(today, lat, lng, zone)
+        val sky = Sky.astroNight(today, lat, lng, zone)
 
-        val sb = StringBuilder()
-        sb.append(getString(R.string.header_result, today)).append("\n\n")
-        sb.append(timeRow(getString(R.string.sunrise), times.sunrise))
-        sb.append(timeRow(getString(R.string.sunset), times.sunset))
-        sb.append("\n")
-        sb.append(timeRow(getString(R.string.civil_dawn), times.civilDawn))
-        sb.append(timeRow(getString(R.string.civil_dusk), times.civilDusk))
-        sb.append("\n")
-        sb.append(timeRow(getString(R.string.nautical_dawn), times.nauticalDawn))
-        sb.append(timeRow(getString(R.string.nautical_dusk), times.nauticalDusk))
-        sb.append("\n")
-        sb.append(timeRow(getString(R.string.astro_dawn), times.astroDawn))
-        sb.append(timeRow(getString(R.string.astro_dusk), times.astroDusk))
-        sb.append("\n")
+        // --- Солнце ---
         val hours = times.daylightHours()
-        sb.append(if (hours != null) getString(R.string.daylight, hours)
-                  else getString(R.string.daylight_none)).append("\n")
+        txSun.text = if (hours != null) {
+            getString(
+                R.string.sun_head,
+                SunTimes.fmt(times.sunrise),
+                SunTimes.fmt(times.sunset),
+                fmtDecimal(hours)
+            )
+        } else {
+            getString(R.string.sun_head_short, "—")
+        }
 
-        resultText.text = sb.toString()
+        // --- Сумерки ---
+        txTwilight.text = getString(
+            R.string.tw_head,
+            SunTimes.fmt(times.civilDawn), SunTimes.fmt(times.civilDusk),
+            SunTimes.fmt(times.nauticalDawn), SunTimes.fmt(times.nauticalDusk),
+            SunTimes.fmt(times.astroDawn), SunTimes.fmt(times.astroDusk)
+        )
+
+        // --- Луна и астрономическая ночь ---
+        txMoonNight.text = formatMoonNight(sky)
+
+        // Обновляем заголовок.
+        dateText.text = getString(R.string.date_now, today.toString())
     }
 
-    private fun timeRow(label: String, t: java.time.LocalTime?): String =
-        "$label: ${SunTimes.fmt(t)}\n"
+    private fun formatMoonNight(sky: Sky.NightInfo): String {
+        val phase = sky.moonPhase
+        return getString(
+            R.string.moon_head_fmt,
+            phase.name,
+            phase.illuminationPercent,
+            listOfTimes(sky.moonRises), listOfTimes(sky.moonSets),
+            fmtTimeOrDash(sky.astroNightStart),
+            fmtTimeOrDash(sky.astroNightEnd),
+            nightSummary(sky)
+        )
+    }
 
+    private fun fmtTimeOrDash(time: LocalTime?): String =
+        if (time == null) "—" else fmtTime(time)
+
+    /** Что именно происходит с тёмной ночью. */
+    private fun nightSummary(sky: Sky.NightInfo): String {
+        if (!sky.hasAstroNight) return getString(R.string.moon_never)
+        if (sky.darkWindows.isEmpty()) return getString(R.string.moon_always_up)
+        if (sky.darkWindows.size == 1 &&
+            sky.darkWindows[0].start == sky.astroNightStart &&
+            sky.darkWindows[0].end == sky.astroNightEnd
+        ) {
+            return getString(R.string.moon_none)
+        }
+        val sb = StringBuilder()
+        for (w in sky.darkWindows) {
+            if (sb.isNotEmpty()) sb.append('\n')
+            sb.append(getString(
+                R.string.moon_window,
+                fmtTime(w.start),
+                fmtTime(w.end)
+            ))
+        }
+        return sb.toString()
+    }
+
+    private fun listOfTimes(times: List<LocalTime>): String =
+        times.joinToString(", ") { fmtTime(it) }.ifEmpty { getString(R.string.moon_rise_set_none) }
+
+    private fun fmtTime(t: LocalTime): String = SunTimes.fmt(t)
+
+    private fun fmtDecimal(v: Double): String =
+        String.format(Locale.US, "%.1f ч", v)
+
+    // --- Геолокация ---
     private fun useCurrentLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -115,13 +171,13 @@ class MainActivity : AppCompatActivity() {
         if (loc != null) {
             latInput.setText(String.format(Locale.US, "%.6f", loc.latitude))
             lngInput.setText(String.format(Locale.US, "%.6f", loc.longitude))
-            resultText.text = getString(
+            dateText.text = getString(
                 R.string.location_ok,
                 String.format(Locale.US, "%.4f", loc.latitude),
                 String.format(Locale.US, "%.4f", loc.longitude)
             )
         } else {
-            resultText.text = getString(R.string.location_not_found)
+            dateText.text = getString(R.string.location_not_found)
         }
     }
 

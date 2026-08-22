@@ -79,10 +79,15 @@ object SunTimes {
     ): LocalTime? {
         val doy = date.dayOfYear.toDouble()
         // В полярных районах событие может не наступать в этот день — перебираем
-        // соседние дни (обиходный допуск для практических целей).
-        for (delta in -40..40) {
-            calcDoy(doy + delta, latitude, longitude, event, zenith, zone)
+        // соседние дни (обиходный допуск для практических целей), начиная с самого
+        // дня и постепенно расширяясь наружу.
+        for (delta in 0..40) {
+            calcDoy(doy - delta, latitude, longitude, event, zenith, zone)
                 ?.let { return it }
+            if (delta > 0) {
+                calcDoy(doy + delta, latitude, longitude, event, zenith, zone)
+                    ?.let { return it }
+            }
         }
         return null
     }

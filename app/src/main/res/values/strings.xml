@@ -2,29 +2,35 @@
 <resources>
     <string name="app_name">Расчёт сумерек</string>
 
-    <string name="date_now">Данные на: %1$s</string>
-    <string name="label_latitude">Широта (градусы, N положительный, S отрицательный)</string>
-    <string name="label_longitude">Долгота (градусы, E положительный, W отрицательный)</string>
-    <string name="hint_lat">Например: 55.7558</string>
-    <string name="hint_lng">Например: 37.6173</string>
+    <string name="date_now">Расчёт сумерек · %1$s</string>
+
+    <string name="section_coords">Координаты</string>
+    <string name="section_sun">Солнце</string>
+    <string name="section_twilight">Сумерки</string>
+    <string name="section_moon_night">Луна и астрономическая ночь</string>
+
+    <string name="label_latitude">Широта (N \"+\", S \"−\")</string>
+    <string name="label_longitude">Долгота (E \"+\", W \"−\")</string>
+    <string name="hint_lat">55.7558</string>
+    <string name="hint_lng">37.6173</string>
 
     <string name="action_calculate">Рассчитать</string>
-    <string name="action_location">Использовать моё местоположение</string>
+    <string name="action_location">Моё место</string>
 
-    <string name="error_coords">Проверьте координаты: широта от -90 до 90, долгота от -180 до 180.</string>
+    <string name="error_coords">Проверьте координаты: широта от −90 до 90, долгота от −180 до 180.</string>
     <string name="location_ok">Местоположение: %1$s, %2$s</string>
     <string name="location_not_found">Не удалось определить местоположение. Введите координаты вручную.</string>
     <string name="location_denied">Доступ к геолокации не предоставлен. Введите координаты вручную.</string>
 
-    <string name="header_result">Результат на %1$s</string>
-    <string name="sunrise">Восход солнца</string>
-    <string name="sunset">Закат солнца</string>
-    <string name="civil_dawn">Гражданские сумерки · начало</string>
-    <string name="civil_dusk">Гражданские сумерки · конец</string>
-    <string name="nautical_dawn">Навигационные сумерки · начало</string>
-    <string name="nautical_dusk">Навигационные сумерки · конец</string>
-    <string name="astro_dawn">Астрономические сумерки · начало</string>
-    <string name="astro_dusk">Астрономические сумерки · конец</string>
-    <string name="daylight">Долгота дня: %1$s ч</string>
-    <string name="daylight_none">Короткий день: время восхода/заката не определено.</string>
+    <string name="sun_head">Восход: %1$s\nЗакат: %2$s\nДолгота дня: %3$s</string>
+    <string name="sun_head_short">Долгота дня: %1$s\n(восход/закат не определяется)</string>
+
+    <string name="tw_head">Гражданские (Солнце 0..−6°)\n&#160;&#160;рассвет: %1$s · закат: %2$s\nНавигационные (−6..−12°)\n&#160;&#160;рассвет: %3$s · закат: %4$s\nАстрономические (−12..−18°)\n&#160;&#160;рассвет: %5$s · закат: %6$s</string>
+
+    <string name="moon_head_fmt">Фаза: %1$s (освещено %2$d%%)\nВосход Луны: %3$s\nЗаход Луны: %4$s\n\nАстрономическая ночь: %5$s – %6$s\n%7$s</string>
+    <string name="moon_never">Астрономическая ночь сегодня не наступает (полярный день/ночь).</string>
+    <string name="moon_none">Луна загоризонтна всю ночь.</string>
+    <string name="moon_always_up">Луна освещает небо всю ночь — тёмной астрономической ночи нет.</string>
+    <string name="moon_window">Тёмная ночь: %1$s – %2$s</string>
+    <string name="moon_rise_set_none">—</string>
 </resources>
