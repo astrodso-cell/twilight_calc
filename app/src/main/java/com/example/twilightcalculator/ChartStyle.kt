@@ -25,6 +25,9 @@ object ChartStyle {
         chart.setNoDataTextColor(AXIS_TEXT)
         chart.setTouchEnabled(true)
         chart.setPinchZoom(true)
+        // Разрешаем перемещение/зум и по вертикали, и по горизонтали.
+        chart.setScaleXEnabled(true)
+        chart.setScaleYEnabled(true)
     }
 
     /**

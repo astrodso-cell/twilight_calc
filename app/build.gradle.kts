@@ -49,6 +49,14 @@ base {
     archivesName.set("twilight-calc")
 }
 
+// Убираем суффикс варианта («debug»/«release») из имени итогового APK.
+applicationVariants.all {
+    outputs.forEach { output ->
+        (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
+            .outputFileName = "twilight-calc.apk"
+    }
+}
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 
