@@ -2,7 +2,7 @@ package com.example.twilightcalculator
 
 import android.graphics.Color
 import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.charts.Chart
+import com.github.mikephil.charting.charts.BarLineChartBase
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -15,8 +15,8 @@ object ChartStyle {
     private const val GRID_COLOR = 0xFF3A4A7A.toInt()
     private const val AXIS_TEXT = 0xFF9AA7C7.toInt()
 
-    /** Стандартные настройки для любой диаграммы. */
-    private fun base(chart: Chart<*>) {
+    /** Стандартные настройки для любой линейной/баровой диаграммы. */
+    private fun base(chart: BarLineChartBase<*>) {
         chart.description.isEnabled = false
         chart.setDrawGridBackground(false)
         chart.setBackgroundColor(Color.TRANSPARENT)

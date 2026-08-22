@@ -34,7 +34,7 @@ object Charts {
         val moonEntries = ArrayList<Entry>()
         var minute = 0
         while (minute < 24 * 60) {
-            val time = LocalTime.ofSecondOfDay(minute * 60)
+            val time = LocalTime.ofSecondOfDay(minute * 60L)
             val epochMinute = Moon.utcEpochMinute(date, time, zone)
 
             val x = minute / 60f // часы с начала суток
@@ -79,7 +79,7 @@ object Charts {
         ll.enableDashedLine(8f, 8f, 0f)
         ll.textColor = color
         ll.textSize = 10f
-        ll.labelPosition = LimitLine.LimitLabelPosition.RIGHT
+        ll.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
         chart.axisLeft.addLimitLine(ll)
     }
 
