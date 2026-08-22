@@ -6,14 +6,11 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
-import android.view.MotionEvent
-import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.github.mikephil.charting.charts.BarChart
 import com.google.android.material.button.MaterialButton
 import java.time.LocalDate
 import java.time.LocalTime
@@ -31,15 +28,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txNautical: TextView
     private lateinit var txAstro: TextView
     private lateinit var txMoonNight: TextView
-    private lateinit var chartDarkNight: BarChart
     private lateinit var chartMonthTitle: TextView
     private lateinit var prevMonth: MaterialButton
     private lateinit var nextMonth: MaterialButton
+    private lateinit var tableBody: android.widget.LinearLayout
 
     /** Выбранная для расчёта дата. */
     private var selectedDate: LocalDate = LocalDate.now()
 
-    /** Первое число месяца, показываемого на графике (независимо от [selectedDate]). */
+    /** Первое число месяца, показываемого в таблице (независимо от [selectedDate]). */
     private var chartMonth: LocalDate = LocalDate.now().withDayOfMonth(1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,10 +51,10 @@ class MainActivity : AppCompatActivity() {
         txNautical = findViewById(R.id.txNautical)
         txAstro = findViewById(R.id.txAstro)
         txMoonNight = findViewById(R.id.txMoonNight)
-        chartDarkNight = findViewById(R.id.chartDarkNight)
         chartMonthTitle = findViewById(R.id.chartMonthTitle)
         prevMonth = findViewById(R.id.prevMonth)
         nextMonth = findViewById(R.id.nextMonth)
+        tableBody = findViewById(R.id.tableBody)
 
         val calcButton = findViewById<MaterialButton>(R.id.calcButton)
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
@@ -80,27 +77,6 @@ class MainActivity : AppCompatActivity() {
             renderDarkNightChart()
         }
         renderDarkNightChart()
-
-        // График лежит внутри вертикального ScrollView — без этого вертикальный
-        // жест перехватывает прокрутка страницы, и график двигается только по
-        // горизонтали. Просим родителя не перехватывать жест, пока он по графику.
-        chartDarkNight.setOnTouchListener { v, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    v.parent?.requestDisallowInterceptTouchEvent(true)
-                    false
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    v.parent?.requestDisallowInterceptTouchEvent(true)
-                    false
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    v.parent?.requestDisallowInterceptTouchEvent(false)
-                    false
-                }
-                else -> false
-            }
-        }
     }
 
     private fun showDatePicker() {
@@ -182,7 +158,7 @@ class MainActivity : AppCompatActivity() {
     private fun twilightInterval(dawn: LocalTime?, dusk: LocalTime?): String =
         getString(R.string.tw_interval, SunTimes.fmt(dawn), SunTimes.fmt(dusk))
 
-    /** Рисует график тёмной ночи для месяца [chartMonth] и обновляет заголовок. */
+    /** Заполняет таблицу тёмной ночи для месяца [chartMonth] и обновляет заголовок. */
     private fun renderDarkNightChart() {
         val lat = latInput.text.toString().trim().toDoubleOrNull()
         val lng = lngInput.text.toString().trim().toDoubleOrNull()
@@ -194,11 +170,54 @@ class MainActivity : AppCompatActivity() {
             R.string.chart_month_title,
             russianMonth(chartMonth), chartMonth.year
         )
-        Charts.fillDarkNight(
-            this, chartDarkNight,
-            chartMonth, daysInMonth, lat, lng, zone
-        )
+
+        // Очищаем предыдущие строки.
+        tableBody.removeAllViews()
+
+        val dateColor = ContextCompat.getColor(this, R.color.text_primary)
+        val startColor = ContextCompat.getColor(this, R.color.tw_nautical)
+        val endColor = ContextCompat.getColor(this, R.color.tw_civil)
+
+        for (i in 0 until daysInMonth) {
+            val d = chartMonth.plusDays(i.toLong())
+            val sky = Sky.astroNight(d, lat, lng, zone)
+            val dark = if (sky.hasAstroNight) sky.darkWindows else emptyList()
+
+            val startTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.first().start) else "—"
+            val endTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.last().end) else "—"
+
+            val row = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                setPadding(0, dp(6), 0, dp(6))
+            }
+            row.addView(column(d.dayOfMonth.toString(), 9, 14f, false, dateColor))
+            row.addView(column(startTxt, 9, 14f, true, startColor))
+            row.addView(column(endTxt, 9, 14f, true, endColor))
+
+            tableBody.addView(row)
+        }
     }
+
+    /** Создаёт TextView-колонку строки таблицы. */
+    private fun column(
+        text: String,
+        weight: Int,
+        textSize: Float,
+        alignEnd: Boolean,
+        color: Int
+    ): TextView {
+        val tv = TextView(this)
+        tv.text = text
+        tv.setTextSize(textSize)
+        tv.setTextColor(color)
+        tv.layoutParams = android.widget.LinearLayout.LayoutParams(
+            0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, weight.toFloat()
+        )
+        if (alignEnd) tv.gravity = android.view.Gravity.END
+        return tv
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     /** Русское название месяца по-настоящему (именительный падеж). */
     private fun russianMonth(d: LocalDate): String = when (d.monthValue) {
