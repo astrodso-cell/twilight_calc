@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Расчёт сумерек</string>
+
+    <string name="date_now">Данные на: %1$s</string>
+    <string name="label_latitude">Широта (градусы, N положительный, S отрицательный)</string>
+    <string name="label_longitude">Долгота (градусы, E положительный, W отрицательный)</string>
+    <string name="hint_lat">Например: 55.7558</string>
+    <string name="hint_lng">Например: 37.6173</string>
+
+    <string name="action_calculate">Рассчитать</string>
+    <string name="action_location">Использовать моё местоположение</string>
+
+    <string name="error_coords">Проверьте координаты: широта от -90 до 90, долгота от -180 до 180.</string>
+    <string name="location_ok">Местоположение: %1$s, %2$s</string>
+    <string name="location_not_found">Не удалось определить местоположение. Введите координаты вручную.</string>
+    <string name="location_denied">Доступ к геолокации не предоставлен. Введите координаты вручную.</string>
+
+    <string name="header_result">Результат на %1$s</string>
+    <string name="sunrise">Восход солнца</string>
+    <string name="sunset">Закат солнца</string>
+    <string name="civil_dawn">Гражданские сумерки · начало</string>
+    <string name="civil_dusk">Гражданские сумерки · конец</string>
+    <string name="nautical_dawn">Навигационные сумерки · начало</string>
+    <string name="nautical_dusk">Навигационные сумерки · конец</string>
+    <string name="astro_dawn">Астрономические сумерки · начало</string>
+    <string name="astro_dusk">Астрономические сумерки · конец</string>
+    <string name="daylight">Долгота дня: %1$s ч</string>
+    <string name="daylight_none">Короткий день: время восхода/заката не определено.</string>
+</resources>
