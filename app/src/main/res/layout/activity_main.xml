@@ -306,7 +306,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Карточка: график высоты Солнца и Луны -->
+        <!-- Карточка: график тёмной ночи на месяц -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -326,13 +326,13 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/section_chart_altitude"
+                    android:text="@string/section_chart_dark_night"
                     android:textColor="@color/night_accent"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/chartAltitude"
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/chartDarkNight"
                     android:layout_width="match_parent"
                     android:layout_height="240dp"
                     android:layout_marginTop="8dp" />

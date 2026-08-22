@@ -6,7 +6,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.asin
 import kotlin.math.atan
-import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -117,48 +116,6 @@ object SunTimes {
             nauticalDusk = nauticalDusk,
             civilDusk = civilDusk
         )
-    }
-
-    /**
-     * Топоцентрическая высота Солнца над горизонтом (градусы) для минуты эпохи
-     * Unix (UTC) в точке [latitude]/[longitude]. Аналогично [Moon.altitudeAt].
-     * Используется для графика дневного хода высоты Солнца.
-     */
-    fun altitudeAt(epochMinuteUtc: Long, latitude: Double, longitude: Double): Double {
-        // Минуты -> доли суток от эпохи J2000.
-        val day = epochMinuteUtc / 1440.0 - 10957.5
-
-        val t = day / 36525.0
-        // Средняя аномалия и долгота Солнца.
-        val m = Math.toRadians(normDeg(357.5291 + 35999.0503 * t))
-        val l = Math.toRadians(normDeg(280.46646 + 36000.76983 * t + 0.0003032 * t * t))
-        // Эклиптическая долгота Солнца (уравнение центра).
-        val lambda = l + Math.toRadians(
-            1.914602 * sin(m) + 0.019993 * sin(2 * m) + 0.000289 * sin(3 * m)
-        )
-        // Склонение.
-        val sinDec = sin(lambda) * sin(Math.toRadians(23.4392911))
-        val dec = asin(sinDec)
-
-        // Часовой угол: гринвичское среднее звёздное время -> местное -> минус RA.
-        val gmst = Math.toRadians(normDeg(280.46061837 + 360.98564736629 * day))
-        val lst = gmst + Math.toRadians(longitude)
-        val ra = atan2(cos(lambda) * cos(Math.toRadians(23.4392911)), cos(Math.toRadians(lambda)))
-        val h = lst - ra
-
-        val alt = asin(
-            sin(Math.toRadians(latitude)) * sin(dec) +
-                cos(Math.toRadians(latitude)) * cos(dec) * cos(h)
-        )
-        // Поправка на рефракцию у горизонта (примерно, чтобы согласовать с восходом 90.833°).
-        return Math.toDegrees(alt)
-    }
-
-    /** Приводит угол к [0, 360). */
-    private fun normDeg(x: Double): Double {
-        var a = x % 360.0
-        if (a < 0) a += 360.0
-        return a
     }
 
     /**

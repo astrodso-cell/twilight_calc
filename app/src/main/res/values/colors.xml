@@ -20,9 +20,8 @@
     <color name="tw_astro">#7C3AED</color>
 
     <!-- Серии для графиков -->
-    <color name="chart_sun">#F59E0B</color>
-    <color name="chart_moon">#8B5CF6</color>
-    <color name="chart_bar">#7DD3FC</color>
+    <color name="chart_night_start">#4F46E5</color>
+    <color name="chart_night_end">#F59E0B</color>
     <color name="chart_bar_current">#FACC15</color>
 
     <!-- Material theme attributes -->

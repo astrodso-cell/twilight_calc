@@ -1,10 +1,11 @@
 package com.example.twilightcalculator
 
 import android.graphics.Color
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.BarLineChartBase
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 
 /**
  * Единая светлая стилизация графиков MPAndroidChart в теме «сумерки».
@@ -25,29 +26,30 @@ object ChartStyle {
         chart.setPinchZoom(true)
     }
 
-    fun styleLine(chart: LineChart) {
+    /** Настройка группового столбикового графика с датами на оси X. */
+    fun styleBarGrouped(chart: BarChart, labels: List<String>) {
         base(chart)
-        val legend = chart.legend
-        legend.isEnabled = true
-        legend.textColor = AXIS_TEXT
-        legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
-        legend.horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
-        legend.setDrawInside(false)
-        legend.xEntrySpace = 12f
+        chart.legend.isEnabled = true
+        chart.legend.textColor = AXIS_TEXT
+        chart.legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
+        chart.legend.horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
+        chart.legend.setDrawInside(false)
+        chart.legend.xEntrySpace = 12f
 
         val x = chart.xAxis
         x.position = XAxis.XAxisPosition.BOTTOM
         x.textColor = AXIS_TEXT
         x.gridColor = GRID_COLOR
-        x.setDrawGridLines(true)
-        x.axisMinimum = 0f
-        x.axisMaximum = 24f
+        x.setDrawGridLines(false)
         x.granularity = 1f
+        x.valueFormatter = IndexAxisValueFormatter(labels)
 
         val yl = chart.axisLeft
         yl.textColor = AXIS_TEXT
         yl.gridColor = GRID_COLOR
-        yl.granularity = 6f
+        yl.axisMinimum = 0f
+        yl.axisMaximum = 24f
+        yl.granularity = 3f
 
         chart.axisRight.isEnabled = false
     }

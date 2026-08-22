@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.BarChart
 import com.google.android.material.button.MaterialButton
 import java.time.LocalDate
 import java.time.LocalTime
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txNautical: TextView
     private lateinit var txAstro: TextView
     private lateinit var txMoonNight: TextView
-    private lateinit var chartAltitude: LineChart
+    private lateinit var chartDarkNight: BarChart
 
     /** Выбранная для расчёта дата. */
     private var selectedDate: LocalDate = LocalDate.now()
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         txNautical = findViewById(R.id.txNautical)
         txAstro = findViewById(R.id.txAstro)
         txMoonNight = findViewById(R.id.txMoonNight)
-        chartAltitude = findViewById(R.id.chartAltitude)
+        chartDarkNight = findViewById(R.id.chartDarkNight)
 
         val calcButton = findViewById<MaterialButton>(R.id.calcButton)
         val locationButton = findViewById<MaterialButton>(R.id.locationButton)
@@ -127,8 +127,13 @@ class MainActivity : AppCompatActivity() {
         // --- Луна и астрономическая ночь ---
         txMoonNight.text = formatMoonNight(sky)
 
-        // --- График высоты ---
-        Charts.fillAltitude(this, chartAltitude, selectedDate, lat, lng, zone)
+        // --- График тёмной ночи на месяц ---
+        val monthStart = selectedDate.withDayOfMonth(1)
+        val daysInMonth = selectedDate.lengthOfMonth()
+        Charts.fillDarkNight(
+            this, chartDarkNight,
+            monthStart, daysInMonth, lat, lng, zone
+        )
 
         // Обновляем заголовок.
         dateText.text = getString(R.string.date_now, date(selectedDate))
