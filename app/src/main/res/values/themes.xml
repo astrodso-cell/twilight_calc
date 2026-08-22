@@ -15,7 +15,5 @@
         <item name="android:windowBackground">@drawable/night_bg_gradient</item>
         <item name="android:statusBarColor">@color/night_background</item>
         <item name="android:navigationBarColor">@color/night_background</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>
