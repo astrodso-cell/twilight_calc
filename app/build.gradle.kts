@@ -50,10 +50,11 @@ base {
 }
 
 // Убираем суффикс варианта («debug»/«release») из имени итогового APK.
-applicationVariants.all {
-    outputs.forEach { output ->
-        (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
-            .outputFileName = "twilight-calc.apk"
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("twilight-calc.apk")
+        }
     }
 }
 
