@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -78,6 +80,27 @@ class MainActivity : AppCompatActivity() {
             renderDarkNightChart()
         }
         renderDarkNightChart()
+
+        // График лежит внутри вертикального ScrollView — без этого вертикальный
+        // жест перехватывает прокрутка страницы, и график двигается только по
+        // горизонтали. Просим родителя не перехватывать жест, пока он по графику.
+        chartDarkNight.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    false
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.parent?.requestDisallowInterceptTouchEvent(false)
+                    false
+                }
+                else -> false
+            }
+        }
     }
 
     private fun showDatePicker() {
