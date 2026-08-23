@@ -298,13 +298,7 @@ class MainActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        // Выбрананая строка: цветной фон-контур (виден как рамка за счёт отступа).
-        if (highlight) {
-            frame.setBackgroundColor(highlightColor)
-            frame.setPadding(dp(4), dp(4), dp(4), dp(4))
-        } else {
-            frame.setPadding(0, dp(2), 0, dp(2))
-        }
+        frame.setPadding(0, dp(2), 0, dp(2))
         frame.minimumHeight = dp(30)
 
         // Полоска-фон: левая доля залита, остальное прозрачно.
@@ -320,6 +314,17 @@ class MainActivity : AppCompatActivity() {
         bar.addView(filled, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, fracPts.toFloat()))
         bar.addView(empty, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, (1000 - fracPts).toFloat()))
         frame.addView(bar)
+
+        // Маркер выбранного дня — вертикальная полоска у левого края, во всю высоту.
+        if (highlight) {
+            val marker = View(this).apply {
+                setBackgroundColor(highlightColor)
+                layoutParams = FrameLayout.LayoutParams(
+                    dp(6), ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            frame.addView(marker)
+        }
 
         // Кнопки текста поверх, центрированные по вертикали.
         val textRow = LinearLayout(this)
