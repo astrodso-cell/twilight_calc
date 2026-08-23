@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.tw_civil) }
     private val tableWeekendColor by lazy { ContextCompat.getColor(this, R.color.weekend_red) }
     private val tableDurColor by lazy { ContextCompat.getColor(this, R.color.tw_astro) }
-    private val tableHighlightColor by lazy { ContextCompat.getColor(this, R.color.night_accent_strong) }
     private val tableFillColor = Color.parseColor("#5540468C")
 
     // --- Сохранение последнего местоположения ---
@@ -254,7 +253,7 @@ class MainActivity : AppCompatActivity() {
 
             tableBody.addView(darkRow(dayTxt, startTxt, endTxt, durTxt,
                 frac, dayColor, tableStartColor, tableEndColor, tableDurColor, tableFillColor,
-                d == selectedDate, tableHighlightColor))
+                d == selectedDate))
         }
     }
 
@@ -290,8 +289,7 @@ class MainActivity : AppCompatActivity() {
         endColor: Int,
         durColor: Int,
         fillColor: Int,
-        highlight: Boolean,
-        highlightColor: Int
+        highlight: Boolean
     ): View {
         val frame = FrameLayout(this)
         frame.layoutParams = LinearLayout.LayoutParams(
@@ -315,25 +313,27 @@ class MainActivity : AppCompatActivity() {
         bar.addView(empty, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, (1000 - fracPts).toFloat()))
         frame.addView(bar)
 
-        // Маркер выбранного дня — вертикальная полоска у левого края, во всю высоту.
-        if (highlight) {
-            val marker = View(this).apply {
-                setBackgroundColor(highlightColor)
-                layoutParams = FrameLayout.LayoutParams(
-                    dp(6), ViewGroup.LayoutParams.MATCH_PARENT
-                )
-            }
-            frame.addView(marker)
-        }
-
         // Кнопки текста поверх, центрированные по вертикали.
         val textRow = LinearLayout(this)
         textRow.orientation = LinearLayout.HORIZONTAL
         textRow.gravity = Gravity.CENTER_VERTICAL
+        textRow.minimumHeight = dp(30)
         textRow.layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+
+        // Маркер выбранного дня — отдельная колонка слева, своим цветом = цвет даты.
+        if (highlight) {
+            val marker = View(this).apply {
+                setBackgroundColor(dateColor)
+                layoutParams = LinearLayout.LayoutParams(
+                    dp(8), ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            textRow.addView(marker)
+        }
+
         textRow.addView(column(dateTxt, 9, 14f, false, dateColor))
         textRow.addView(column(startTxt, 9, 14f, true, startColor))
         textRow.addView(column(endTxt, 9, 14f, true, endColor))
