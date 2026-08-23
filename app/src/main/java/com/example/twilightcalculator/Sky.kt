@@ -47,13 +47,16 @@ object Sky {
         val moonRises = ArrayList<LocalTime>()
         val moonSets = ArrayList<LocalTime>()
 
-        // Сканируем ночь с шагом 1 мин по высоте Луны.
-        var prevDown = Moon.altitudeAt(startEpoch, latitude, longitude) < MOON_DOWN_THRESHOLD
+        // Компьютер высоты Луны переиспользуется на всём сканировании ночи:
+        // наблюдатель-зависимая тригонометрия считается один раз, а не на
+        // каждой минуте (~сотни вызовов).
+        val moon = Moon.AltitudeComputer(latitude, longitude)
+        var prevDown = moon.altitudeAt(startEpoch) < MOON_DOWN_THRESHOLD
         var segStart: Long? = if (prevDown) startEpoch else null
 
         var e = startEpoch + 1
         while (e < endEpoch) {
-            val down = Moon.altitudeAt(e, latitude, longitude) < MOON_DOWN_THRESHOLD
+            val down = moon.altitudeAt(e) < MOON_DOWN_THRESHOLD
             if (prevDown && !down) {
                 // Луна поднялась над горизонтом -> восход.
                 moonRises.add(Moon.localTimeAt(e, zone))

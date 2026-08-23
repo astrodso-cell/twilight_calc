@@ -45,6 +45,20 @@ class MainActivity : AppCompatActivity() {
     /** Первое число месяца, показываемого в таблице (независимо от [selectedDate]). */
     private var chartMonth: LocalDate = LocalDate.now().withDayOfMonth(1)
 
+    // Ключ последней построенной таблицы: месяц + координаты.
+    // Позволяет не пересобирать таблицу (и не пересчитывать астрономию за
+    // весь месяц) при нажатии «Рассчитать», если данные не изменились.
+    private var lastTableMonth: LocalDate? = null
+    private var lastTableLat: Double? = null
+    private var lastTableLng: Double? = null
+
+    // Цвета таблицы читаются один раз.
+    private val tableDateColor by lazy { ContextCompat.getColor(this, R.color.text_primary) }
+    private val tableStartColor by lazy { ContextCompat.getColor(this, R.color.tw_nautical) }
+    private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.tw_civil) }
+    private val tableWeekendColor by lazy { ContextCompat.getColor(this, R.color.weekend_red) }
+    private val tableFillColor = Color.parseColor("#5540468C")
+
     // --- Сохранение последнего местоположения ---
     private val prefs by lazy {
         getSharedPreferences("twilight_prefs", android.content.Context.MODE_PRIVATE)
@@ -198,14 +212,14 @@ class MainActivity : AppCompatActivity() {
             russianMonth(chartMonth), chartMonth.year
         )
 
+        // Если данные не изменились — не пересчитываем и не пересобираем таблицу.
+        if (lastTableMonth == chartMonth && lastTableLat == lat && lastTableLng == lng) return
+        lastTableMonth = chartMonth
+        lastTableLat = lat
+        lastTableLng = lng
+
         // Очищаем предыдущие строки.
         tableBody.removeAllViews()
-
-        val dateColor = ContextCompat.getColor(this, R.color.text_primary)
-        val startColor = ContextCompat.getColor(this, R.color.tw_nautical)
-        val endColor = ContextCompat.getColor(this, R.color.tw_civil)
-        val weekendColor = ContextCompat.getColor(this, R.color.weekend_red)
-        val fillColor = Color.parseColor("#5540468C") // полупрозрачный тёмный для полоски
 
         // Длительность тёмной ночи по каждому дню, чтобы найти максимум за месяц.
         val durations = ArrayList<Int>()
@@ -232,11 +246,11 @@ class MainActivity : AppCompatActivity() {
             // День недели; выходные (сб/вс) — красным.
             val isWeekend = d.dayOfWeek == java.time.DayOfWeek.SATURDAY ||
                 d.dayOfWeek == java.time.DayOfWeek.SUNDAY
-            val dayColor = if (isWeekend) weekendColor else dateColor
+            val dayColor = if (isWeekend) tableWeekendColor else tableDateColor
             val dayTxt = "${d.dayOfMonth} ${weekdayShort(d)}"
 
             tableBody.addView(darkRow(dayTxt, startTxt, endTxt,
-                frac, dayColor, startColor, endColor, fillColor))
+                frac, dayColor, tableStartColor, tableEndColor, tableFillColor))
         }
     }
 

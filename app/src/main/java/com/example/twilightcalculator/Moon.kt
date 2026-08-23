@@ -35,72 +35,97 @@ object Moon {
         Instant.ofEpochSecond(epochMinuteUtc * 60).atZone(zone).toLocalTime()
 
     /** Топоцентрическая высота Луны над горизонтом (градусы, север положительный). */
-    fun altitudeAt(epochMinuteUtc: Long, latitude: Double, longitude: Double): Double {
-        val d = daysSinceJ2000(epochMinuteUtc)
-        val t = d / 36525.0
+    fun altitudeAt(epochMinuteUtc: Long, latitude: Double, longitude: Double): Double =
+        AltitudeComputer(latitude, longitude).altitudeAt(epochMinuteUtc)
 
-        val mSun = norm(357.5291 + 35999.0503 * t)          // средняя аномалия Солнца
-        val Lp = norm(218.3164477 + 481267.88123421 * t)    // средняя долгота Луны
-        val l = norm(134.9634114 + 477198.8676313 * t)      // средняя аномалия Луны
-        val F = norm(93.2720993 + 483202.0175273 * t)       // аргумент широты
-        val D = norm(297.8501921 + 445267.1114034 * t)      // среднее удлинение
+    /**
+     * Быстрый расчёт высоты Луны для фиксированной точки наблюдения.
+     *
+     * Наблюдательно-зависимые тригонометрические величины (sin/cos широты и
+     * параметры наклона эклиптики) вычисляются один раз в конструкторе,
+     * а не на каждом обороте сканирования ночи (сотни вызовов).
+     */
+    inner class AltitudeComputer(val latitude: Double, val longitude: Double) {
 
-        // Эклиптическая долгота Луны.
-        val lp = Lp +
-            6.288774 * sin(rad(l)) +
-            1.274024 * sin(rad(2 * D - l)) +
-            0.658314 * sin(rad(2 * D)) -
-            0.213618 * sin(rad(2 * l)) -
-            0.185116 * sin(rad(mSun)) -
-            0.114332 * sin(rad(2 * F)) +
-            0.058793 * sin(rad(2 * D - 2 * l)) +
-            0.057066 * sin(rad(2 * D - l - mSun)) +
-            0.053322 * sin(rad(2 * D + l))
+        private val sinLat = sin(rad(latitude))
+        private val cosLat = cos(rad(latitude))
+        private val sinEps0 = sin(rad(EPS0))
+        private val cosEps0 = cos(rad(EPS0))
+        private val epsRate = EPS_DECLINATION / 36525.0
 
-        // Эклиптическая широта.
-        val beta = 5.128122 * sin(rad(F)) +
-            0.280606 * sin(rad(l + F)) +
-            0.277693 * sin(rad(l - F)) +
-            0.173238 * sin(rad(2 * D - F)) -
-            0.055413 * sin(rad(2 * D + F - l)) -
-            0.046575 * sin(rad(2 * D - F - l)) +
-            0.032734 * sin(rad(2 * D + F)) +
-            0.021843 * sin(rad(2 * l + F)) -
-            0.027493 * sin(rad(2 * l - F))
+        /** Высота Луны для минуты эпохи Unix (UTC). */
+        fun altitudeAt(epochMinuteUtc: Long): Double {
+            val d = daysSinceJ2000(epochMinuteUtc)
+            val t = d / 36525.0
 
-        // Наклон эклиптики.
-        val eps = 23.4392911 - 0.0130042 * t
+            val mSun = norm(357.5291 + 35999.0503 * t)          // средняя аномалия Солнца
+            val Lp = norm(218.3164477 + 481267.88123421 * t)    // средняя долгота Луны
+            val l = norm(134.9634114 + 477198.8676313 * t)      // средняя аномалия Луны
+            val F = norm(93.2720993 + 483202.0175273 * t)       // аргумент широты
+            val D = norm(297.8501921 + 445267.1114034 * t)      // среднее удлинение
 
-        // Прямое восхождение и склонение.
-        val sinDec = sin(rad(beta)) * cos(rad(eps)) + cos(rad(beta)) * sin(rad(eps)) * sin(rad(lp))
-        val dec = asin(sinDec)
-        val ra = atan2(
-            sin(rad(lp)) * cos(rad(eps)) - tan(rad(beta)) * sin(rad(eps)),
-            cos(rad(lp))
-        )
+            // Эклиптическая долгота Луны.
+            val lp = Lp +
+                6.288774 * sin(rad(l)) +
+                1.274024 * sin(rad(2 * D - l)) +
+                0.658314 * sin(rad(2 * D)) -
+                0.213618 * sin(rad(2 * l)) -
+                0.185116 * sin(rad(mSun)) -
+                0.114332 * sin(rad(2 * F)) +
+                0.058793 * sin(rad(2 * D - 2 * l)) +
+                0.057066 * sin(rad(2 * D - l - mSun)) +
+                0.053322 * sin(rad(2 * D + l))
 
-        // Гринвичское звёздное время -> местное.
-        val gmst = norm(280.46061837 + 360.98564736629 * d)
-        val lst = gmst + longitude
-        val h = rad(lst) - ra
+            // Эклиптическая широта.
+            val beta = 5.128122 * sin(rad(F)) +
+                0.280606 * sin(rad(l + F)) +
+                0.277693 * sin(rad(l - F)) +
+                0.173238 * sin(rad(2 * D - F)) -
+                0.055413 * sin(rad(2 * D + F - l)) -
+                0.046575 * sin(rad(2 * D - F - l)) +
+                0.032734 * sin(rad(2 * D + F)) +
+                0.021843 * sin(rad(2 * l + F)) -
+                0.027493 * sin(rad(2 * l - F))
 
-        // Геоцентрическая высота.
-        val sinAlt = sin(rad(latitude)) * sin(dec) + cos(rad(latitude)) * cos(dec) * cos(h)
-        val altGeo = asin(sinAlt)
+            // Наклон эклиптики (линейно меняется со временем).
+            val eps = EPS0 + epsRate * t
+            val sinEps = sin(rad(eps))
+            val cosEps = cos(rad(eps))
 
-        // Горизонтальный параллакс -> топоцентрическая высота.
-        val pi = 0.950724 + 0.051818 * cos(rad(l)) +
-            0.009531 * cos(rad(2 * D - l)) +
-            0.007843 * cos(rad(2 * D)) +
-            0.002824 * cos(rad(2 * l))
+            // Прямое восхождение и склонение.
+            val sinBeta = sin(rad(beta))
+            val cosBeta = cos(rad(beta))
+            val sinDec = sinBeta * cosEps + cosBeta * sinEps * sin(rad(lp))
+            val dec = asin(sinDec)
+            val ra = atan2(
+                sin(rad(lp)) * cosEps - tan(rad(beta)) * sinEps,
+                cos(rad(lp))
+            )
 
-        val altTopo = altGeo + asin(sin(rad(pi)) * cos(altGeo))
-        return Math.toDegrees(altTopo)
+            // Гринвичское звёздное время -> местное.
+            val gmst = norm(280.46061837 + 360.98564736629 * d)
+            val lst = gmst + longitude
+            val h = rad(lst) - ra
+
+            // Геоцентрическая высота.
+            val sinAlt = sinLat * sin(dec) + cosLat * cos(dec) * cos(h)
+            val altGeo = asin(sinAlt)
+
+            // Горизонтальный параллакс -> топоцентрическая высота.
+            val pi = 0.950724 + 0.051818 * cos(rad(l)) +
+                0.009531 * cos(rad(2 * D - l)) +
+                0.007843 * cos(rad(2 * D)) +
+                0.002824 * cos(rad(2 * l))
+
+            val altTopo = altGeo + asin(sin(rad(pi)) * cos(altGeo))
+            return Math.toDegrees(altTopo)
+        }
+
+        private companion object {
+            const val EPS0 = 23.4392911
+            const val EPS_DECLINATION = -0.0130042
+        }
     }
-
-    /** Находится ли Луна над горизонтом (геометрически) в заданный момент. */
-    fun isAboveHorizon(epochMinuteUtc: Long, latitude: Double, longitude: Double): Boolean =
-        altitudeAt(epochMinuteUtc, latitude, longitude) > 0.0
 
     /** Фаза Луны для даты. */
     fun phase(date: LocalDate, zone: ZoneId): PhaseInfo {
