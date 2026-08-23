@@ -45,7 +45,7 @@ object Moon {
      * параметры наклона эклиптики) вычисляются один раз в конструкторе,
      * а не на каждом обороте сканирования ночи (сотни вызовов).
      */
-    inner class AltitudeComputer(val latitude: Double, val longitude: Double) {
+    class AltitudeComputer(val latitude: Double, val longitude: Double) {
 
         private val sinLat = sin(rad(latitude))
         private val cosLat = cos(rad(latitude))
