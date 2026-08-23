@@ -55,9 +55,9 @@ class MainActivity : AppCompatActivity() {
     // Цвета таблицы читаются один раз.
     private val tableDateColor by lazy { ContextCompat.getColor(this, R.color.text_primary) }
     private val tableStartColor by lazy { ContextCompat.getColor(this, R.color.tw_nautical) }
-    private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.tw_civil) }
+    private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.table_end) }
     private val tableWeekendColor by lazy { ContextCompat.getColor(this, R.color.weekend_red) }
-    private val tableDurColor by lazy { ContextCompat.getColor(this, R.color.tw_astro) }
+    private val tableDurColor by lazy { ContextCompat.getColor(this, R.color.table_dur) }
     private val tableFillColor = Color.parseColor("#5540468C")
 
     // --- Сохранение последнего местоположения ---
@@ -234,6 +234,14 @@ class MainActivity : AppCompatActivity() {
         }
         val maxDur = durations.maxOrNull() ?: 0
 
+        // День-маркер: выбранная в календаре дата, если она в показанном месяце;
+        // иначе — текущая дата, если месяц совпадает; иначе подсветки нет.
+        val markerDay = if (selectedDate.year == chartMonth.year &&
+            selectedDate.monthValue == chartMonth.monthValue
+        ) selectedDate else if (LocalDate.now().year == chartMonth.year &&
+            LocalDate.now().monthValue == chartMonth.monthValue
+        ) LocalDate.now() else null
+
         for (i in 0 until daysInMonth) {
             val d = chartMonth.plusDays(i.toLong())
             val dark = skies[i]
@@ -253,7 +261,7 @@ class MainActivity : AppCompatActivity() {
 
             tableBody.addView(darkRow(dayTxt, startTxt, endTxt, durTxt,
                 frac, dayColor, tableStartColor, tableEndColor, tableDurColor, tableFillColor,
-                d == selectedDate))
+                d == markerDay))
         }
     }
 
@@ -322,23 +330,22 @@ class MainActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-
-        // Маркер выбранного дня — отдельная колонка слева, своим цветом = цвет даты.
-        if (highlight) {
-            val marker = View(this).apply {
-                setBackgroundColor(dateColor)
-                layoutParams = LinearLayout.LayoutParams(
-                    dp(8), ViewGroup.LayoutParams.MATCH_PARENT
-                )
-            }
-            textRow.addView(marker)
-        }
-
         textRow.addView(column(dateTxt, 9, 14f, false, dateColor))
         textRow.addView(column(startTxt, 9, 14f, true, startColor))
         textRow.addView(column(endTxt, 9, 14f, true, endColor))
         textRow.addView(column(durTxt, 9, 14f, true, durColor))
         frame.addView(textRow)
+
+        // Маркер выбранного дня — оверлей у левого края, дату не сдвигает.
+        if (highlight) {
+            val marker = View(this).apply {
+                setBackgroundColor(dateColor)
+                layoutParams = FrameLayout.LayoutParams(
+                    dp(8), ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            frame.addView(marker)
+        }
 
         return frame
     }

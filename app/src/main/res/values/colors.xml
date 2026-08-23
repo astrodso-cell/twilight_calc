@@ -19,6 +19,10 @@
     <color name="tw_nautical">#2563EB</color>
     <color name="tw_astro">#7C3AED</color>
 
+    <!-- Цвета столбцов таблицы тёмной ночи -->
+    <color name="table_end">#F59E0B</color>   <!-- оранжевый -->
+    <color name="table_dur">#111111</color>   <!-- почти чёрный -->
+
     <!-- Выходные -->
     <color name="weekend_red">#F87171</color>
 
