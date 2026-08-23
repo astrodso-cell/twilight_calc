@@ -45,12 +45,13 @@ class MainActivity : AppCompatActivity() {
     /** Первое число месяца, показываемого в таблице (независимо от [selectedDate]). */
     private var chartMonth: LocalDate = LocalDate.now().withDayOfMonth(1)
 
-    // Ключ последней построенной таблицы: месяц + координаты.
+    // Ключ последней построенной таблицы: месяц + координаты + день-маркер.
     // Позволяет не пересобирать таблицу (и не пересчитывать астрономию за
     // весь месяц) при нажатии «Рассчитать», если данные не изменились.
     private var lastTableMonth: LocalDate? = null
     private var lastTableLat: Double? = null
     private var lastTableLng: Double? = null
+    private var lastTableMarkerDay: LocalDate? = null
 
     // Цвета таблицы читаются один раз.
     private val tableDateColor by lazy { ContextCompat.getColor(this, R.color.text_primary) }
@@ -213,11 +214,22 @@ class MainActivity : AppCompatActivity() {
             russianMonth(chartMonth), chartMonth.year
         )
 
-        // Если данные не изменились — не пересчитываем и не пересобираем таблицу.
-        if (lastTableMonth == chartMonth && lastTableLat == lat && lastTableLng == lng) return
+        // День-маркер: выбранная в календаре дата, если она в показанном месяце;
+        // иначе — текущая дата, если месяц совпадает; иначе подсветки нет.
+        val markerDay = if (selectedDate.year == chartMonth.year &&
+            selectedDate.monthValue == chartMonth.monthValue
+        ) selectedDate else if (LocalDate.now().year == chartMonth.year &&
+            LocalDate.now().monthValue == chartMonth.monthValue
+        ) LocalDate.now() else null
+
+        // Если данные (включая день-маркер) не изменились — не пересобираем.
+        if (lastTableMonth == chartMonth && lastTableLat == lat && lastTableLng == lng &&
+            lastTableMarkerDay == markerDay
+        ) return
         lastTableMonth = chartMonth
         lastTableLat = lat
         lastTableLng = lng
+        lastTableMarkerDay = markerDay
 
         // Очищаем предыдущие строки.
         tableBody.removeAllViews()
@@ -233,14 +245,6 @@ class MainActivity : AppCompatActivity() {
             durations.add(dark.sumOf { windowMinutes(it) })
         }
         val maxDur = durations.maxOrNull() ?: 0
-
-        // День-маркер: выбранная в календаре дата, если она в показанном месяце;
-        // иначе — текущая дата, если месяц совпадает; иначе подсветки нет.
-        val markerDay = if (selectedDate.year == chartMonth.year &&
-            selectedDate.monthValue == chartMonth.monthValue
-        ) selectedDate else if (LocalDate.now().year == chartMonth.year &&
-            LocalDate.now().monthValue == chartMonth.monthValue
-        ) LocalDate.now() else null
 
         for (i in 0 until daysInMonth) {
             val d = chartMonth.plusDays(i.toLong())
