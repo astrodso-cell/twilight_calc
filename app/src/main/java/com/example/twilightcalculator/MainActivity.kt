@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.tw_civil) }
     private val tableWeekendColor by lazy { ContextCompat.getColor(this, R.color.weekend_red) }
     private val tableDurColor by lazy { ContextCompat.getColor(this, R.color.tw_astro) }
+    private val tableHighlightColor by lazy { ContextCompat.getColor(this, R.color.night_accent_strong) }
     private val tableFillColor = Color.parseColor("#5540468C")
 
     // --- Сохранение последнего местоположения ---
@@ -252,7 +253,8 @@ class MainActivity : AppCompatActivity() {
             val dayTxt = "${d.dayOfMonth} ${weekdayShort(d)}"
 
             tableBody.addView(darkRow(dayTxt, startTxt, endTxt, durTxt,
-                frac, dayColor, tableStartColor, tableEndColor, tableDurColor, tableFillColor))
+                frac, dayColor, tableStartColor, tableEndColor, tableDurColor, tableFillColor,
+                d == selectedDate, tableHighlightColor))
         }
     }
 
@@ -287,14 +289,22 @@ class MainActivity : AppCompatActivity() {
         startColor: Int,
         endColor: Int,
         durColor: Int,
-        fillColor: Int
+        fillColor: Int,
+        highlight: Boolean,
+        highlightColor: Int
     ): View {
         val frame = FrameLayout(this)
         frame.layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        frame.setPadding(0, dp(2), 0, dp(2))
+        // Выбрананая строка: цветной фон-контур (виден как рамка за счёт отступа).
+        if (highlight) {
+            frame.setBackgroundColor(highlightColor)
+            frame.setPadding(dp(4), dp(4), dp(4), dp(4))
+        } else {
+            frame.setPadding(0, dp(2), 0, dp(2))
+        }
         frame.minimumHeight = dp(30)
 
         // Полоска-фон: левая доля залита, остальное прозрачно.
