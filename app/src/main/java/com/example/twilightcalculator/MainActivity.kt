@@ -330,22 +330,22 @@ class MainActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+
+        // Колонка-маркер слева (постоянная, чтобы дата не сдвигалась):
+        // у выбранного дня — цветная (цвет даты), у остальных — прозрачная.
+        val marker = View(this).apply {
+            setBackgroundColor(if (highlight) dateColor else Color.TRANSPARENT)
+            layoutParams = LinearLayout.LayoutParams(
+                dp(8), LinearLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        textRow.addView(marker)
+
         textRow.addView(column(dateTxt, 9, 14f, false, dateColor))
         textRow.addView(column(startTxt, 9, 14f, true, startColor))
         textRow.addView(column(endTxt, 9, 14f, true, endColor))
         textRow.addView(column(durTxt, 9, 14f, true, durColor))
         frame.addView(textRow)
-
-        // Маркер выбранного дня — оверлей у левого края, дату не сдвигает.
-        if (highlight) {
-            val marker = View(this).apply {
-                setBackgroundColor(dateColor)
-                layoutParams = FrameLayout.LayoutParams(
-                    dp(8), ViewGroup.LayoutParams.MATCH_PARENT
-                )
-            }
-            frame.addView(marker)
-        }
 
         return frame
     }

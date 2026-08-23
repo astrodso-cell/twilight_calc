@@ -371,6 +371,11 @@
                     android:orientation="horizontal"
                     android:paddingBottom="6dp">
 
+                    <!-- Отступ под колонку-маркер (совпадает с маркером в строках) -->
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
