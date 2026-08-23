@@ -43,5 +43,6 @@
     <string name="table_col_date">Дата</string>
     <string name="table_col_start">Начало</string>
     <string name="table_col_end">Конец</string>
+    <string name="table_col_duration">Длительность</string>
     <string name="chart_month_title">Тёмная ночь · %1$s %2$d</string>
 </resources>

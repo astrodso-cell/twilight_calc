@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private val tableStartColor by lazy { ContextCompat.getColor(this, R.color.tw_nautical) }
     private val tableEndColor by lazy { ContextCompat.getColor(this, R.color.tw_civil) }
     private val tableWeekendColor by lazy { ContextCompat.getColor(this, R.color.weekend_red) }
+    private val tableDurColor by lazy { ContextCompat.getColor(this, R.color.tw_astro) }
     private val tableFillColor = Color.parseColor("#5540468C")
 
     // --- Сохранение последнего местоположения ---
@@ -239,6 +240,7 @@ class MainActivity : AppCompatActivity() {
 
             val startTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.first().start) else "—"
             val endTxt = if (dark.isNotEmpty()) SunTimes.fmt(dark.last().end) else "—"
+            val durTxt = if (dark.isNotEmpty()) formatDuration(durations[i]) else "—"
 
             // Доля заполнения строки: от 0 (нет темноты) до 1 (самая длинная ночь).
             val frac = if (maxDur > 0) durations[i].toFloat() / maxDur.toFloat() else 0f
@@ -249,9 +251,16 @@ class MainActivity : AppCompatActivity() {
             val dayColor = if (isWeekend) tableWeekendColor else tableDateColor
             val dayTxt = "${d.dayOfMonth} ${weekdayShort(d)}"
 
-            tableBody.addView(darkRow(dayTxt, startTxt, endTxt,
-                frac, dayColor, tableStartColor, tableEndColor, tableFillColor))
+            tableBody.addView(darkRow(dayTxt, startTxt, endTxt, durTxt,
+                frac, dayColor, tableStartColor, tableEndColor, tableDurColor, tableFillColor))
         }
+    }
+
+    /** Форматирует длительность в «Ч:ММ» или «М:ММ», например 6:05 или 0:42. */
+    private fun formatDuration(minutes: Int): String {
+        val h = minutes / 60
+        val m = minutes % 60
+        return "$h:${String.format(Locale.US, "%02d", m)}"
     }
 
     /** Короткое название дня недели (пн, вт, …). */
@@ -272,10 +281,12 @@ class MainActivity : AppCompatActivity() {
         dateTxt: String,
         startTxt: String,
         endTxt: String,
+        durTxt: String,
         frac: Float,
         dateColor: Int,
         startColor: Int,
         endColor: Int,
+        durColor: Int,
         fillColor: Int
     ): View {
         val frame = FrameLayout(this)
@@ -311,6 +322,7 @@ class MainActivity : AppCompatActivity() {
         textRow.addView(column(dateTxt, 9, 14f, false, dateColor))
         textRow.addView(column(startTxt, 9, 14f, true, startColor))
         textRow.addView(column(endTxt, 9, 14f, true, endColor))
+        textRow.addView(column(durTxt, 9, 14f, true, durColor))
         frame.addView(textRow)
 
         return frame
