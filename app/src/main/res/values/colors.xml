@@ -19,6 +19,9 @@
     <color name="tw_nautical">#2563EB</color>
     <color name="tw_astro">#7C3AED</color>
 
+    <!-- Выходные -->
+    <color name="weekend_red">#F87171</color>
+
     <!-- Серии для графиков -->
     <color name="chart_night_start">#4F46E5</color>
     <color name="chart_night_end">#F59E0B</color>

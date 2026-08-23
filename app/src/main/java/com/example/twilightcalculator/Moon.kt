@@ -133,7 +133,11 @@ object Moon {
             0.021843 * sin(rad(2 * l + F)) -
             0.027493 * sin(rad(2 * l - F))
 
-        val sunLon = norm(mSun + 1.914666 * sin(rad(mSun)) + 0.019994 * sin(rad(2 * mSun)))
+        val sunLon = norm(
+            280.46646 + 36000.76983 * t +   // средняя долгота Солнца (от эпохи J2000)
+                1.914666 * sin(rad(mSun)) +
+                0.019994 * sin(rad(2 * mSun))
+        )
         val elongCos = (cos(rad(beta)) * cos(rad(lp - sunLon))).coerceIn(-1.0, 1.0)
         val inc = Math.acos(elongCos)
         // Доля освещённого диска: новолуние (угол 0°) -> 0%, полнолуние (180°) -> 100%.

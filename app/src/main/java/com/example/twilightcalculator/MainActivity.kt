@@ -204,6 +204,7 @@ class MainActivity : AppCompatActivity() {
         val dateColor = ContextCompat.getColor(this, R.color.text_primary)
         val startColor = ContextCompat.getColor(this, R.color.tw_nautical)
         val endColor = ContextCompat.getColor(this, R.color.tw_civil)
+        val weekendColor = ContextCompat.getColor(this, R.color.weekend_red)
         val fillColor = Color.parseColor("#5540468C") // полупрозрачный тёмный для полоски
 
         // Длительность тёмной ночи по каждому дню, чтобы найти максимум за месяц.
@@ -228,9 +229,26 @@ class MainActivity : AppCompatActivity() {
             // Доля заполнения строки: от 0 (нет темноты) до 1 (самая длинная ночь).
             val frac = if (maxDur > 0) durations[i].toFloat() / maxDur.toFloat() else 0f
 
-            tableBody.addView(darkRow(d.dayOfMonth.toString(), startTxt, endTxt,
-                frac, dateColor, startColor, endColor, fillColor))
+            // День недели; выходные (сб/вс) — красным.
+            val isWeekend = d.dayOfWeek == java.time.DayOfWeek.SATURDAY ||
+                d.dayOfWeek == java.time.DayOfWeek.SUNDAY
+            val dayColor = if (isWeekend) weekendColor else dateColor
+            val dayTxt = "${d.dayOfMonth} ${weekdayShort(d)}"
+
+            tableBody.addView(darkRow(dayTxt, startTxt, endTxt,
+                frac, dayColor, startColor, endColor, fillColor))
         }
+    }
+
+    /** Короткое название дня недели (пн, вт, …). */
+    private fun weekdayShort(d: LocalDate): String = when (d.dayOfWeek) {
+        java.time.DayOfWeek.MONDAY -> "пн"
+        java.time.DayOfWeek.TUESDAY -> "вт"
+        java.time.DayOfWeek.WEDNESDAY -> "ср"
+        java.time.DayOfWeek.THURSDAY -> "чт"
+        java.time.DayOfWeek.FRIDAY -> "пт"
+        java.time.DayOfWeek.SATURDAY -> "сб"
+        java.time.DayOfWeek.SUNDAY -> "вс"
     }
 
     /**
